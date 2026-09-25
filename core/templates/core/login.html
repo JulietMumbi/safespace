@@ -1,0 +1,106 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Log In - Anonymous Peer Support</title>
+
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="logo">
+            Anonymous Peer Support
+        </div>
+
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'signup' %}" class="btn btn-primary">
+                Sign Up
+            </a>
+        </div>
+
+    </nav>
+
+
+    <main class="form-container">
+
+        <h1>Welcome Back</h1>
+
+        <p class="form-description">
+            Log in to continue to your peer support space.
+        </p>
+
+
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <div class="form-group">
+
+    <label for="email">
+        Email
+    </label>
+
+    <input
+        type="email"
+        id="email"
+        name="email"
+        required
+    >
+
+</div>
+
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                >
+
+            </div>
+
+
+            <button type="submit" class="btn btn-primary">
+                Log In
+            </button>
+
+        </form>
+
+
+        <div class="form-footer">
+
+            Don't have an account?
+
+            <a href="{% url 'signup' %}">
+                Sign up
+            </a>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

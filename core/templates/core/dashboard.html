@@ -1,0 +1,53 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard - Anonymous Peer Support</title>
+
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="logo">
+            Anonymous Peer Support
+        </div>
+
+        <div class="nav-links">
+            <a href="{% url 'logout' %}">Log Out</a>
+        </div>
+
+    </nav>
+
+
+    <main class="hero">
+
+        <div class="hero-content">
+
+            <h1>
+                Welcome to your support space.
+            </h1>
+
+            <p>
+                You're now part of a space where you can
+                share, connect, and support others anonymously.
+            </p>
+
+            <a href="#" class="btn btn-primary">
+                Explore Discussions
+            </a>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

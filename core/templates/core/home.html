@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSpace</title>
+
+         <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            SafeSpace
+        </div>
+
+        <div class="nav-links">
+            <a href="{% url 'login' %}">Log In</a>
+            <a href="{% url 'signup' %}" class="btn btn-primary">Sign Up</a>
+        </div>
+    </nav>
+
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <h1>
+                You don't have to go through it alone.
+            </h1>
+
+            <p>
+                A safe and structured space where university students
+                can anonymously share experiences, connect with peers,
+                and offer support.
+            </p>
+
+            <div class="hero-buttons">
+
+                <a href="{% url 'signup' %}" class="btn btn-primary">
+                    Get Started
+                </a>
+
+                <a href="{% url 'login' %}" class="btn btn-secondary">
+                    Log In
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</body>
+</html>
