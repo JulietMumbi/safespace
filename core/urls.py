@@ -7,4 +7,10 @@ urlpatterns = [
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('create-post/', views.create_post, name='create_post'),
+    path(
+    'category/<int:category_id>/',
+    views.category_posts,
+    name='category_posts'
+),
 ]

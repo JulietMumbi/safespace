@@ -1,0 +1,99 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ category.name }} - SafeSpace</title>
+
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="logo">SafeSpace</div>
+
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'logout' %}">Log Out</a>
+        </div>
+
+    </nav>
+
+
+    <main class="category-page">
+
+        <section class="category-header">
+
+            <a href="{% url 'dashboard' %}" class="back-link">
+                ← Back to Dashboard
+            </a>
+
+            <h1>{{ category.name }}</h1>
+
+            <p>
+                {{ category.description }}
+            </p>
+
+        </section>
+
+
+        <section class="posts-section">
+
+            {% if posts %}
+
+                {% for post in posts %}
+
+                    <article class="post-card">
+
+                        <div class="post-meta">
+                            {{ post.author.anonymous_name }}
+                            · {{ post.created_at|date:"M d, Y" }}
+                        </div>
+
+                        <h2>{{ post.title }}</h2>
+
+                        <p class="post-content">
+                            {{ post.content }}
+                        </p>
+
+                        <div class="post-actions">
+                            <span>Reply</span>
+                            <span>Report</span>
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="empty-posts">
+
+                    <h2>No discussions yet</h2>
+
+                    <p>
+                        There are no posts in this category yet.
+                        Be the first to share something.
+                    </p>
+
+                    <a href="{% url 'create_post' %}" class="btn btn-primary">
+                        Share Something
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>

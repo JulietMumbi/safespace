@@ -1,0 +1,120 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Share Something - SafeSpace</title>
+
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <div class="logo">SafeSpace</div>
+
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'logout' %}">Log Out</a>
+        </div>
+
+    </nav>
+
+
+    <main class="form-container">
+
+        <h1>Share Something</h1>
+
+        <p class="form-description">
+            Share what's on your mind with your fellow students.
+            Your identity will remain anonymous.
+        </p>
+
+
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+
+            <div class="form-group">
+
+                <label for="category">Category</label>
+
+                <select id="category" name="category" required>
+
+                    <option value="">Choose a category</option>
+
+                    {% for category in categories %}
+                        <option value="{{ category.category_id }}">
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="title">Title</label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="Give your post a title"
+                    maxlength="200"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="content">What's on your mind?</label>
+
+                <textarea
+                    id="content"
+                    name="content"
+                    rows="8"
+                    placeholder="Share what you're experiencing..."
+                    required
+                ></textarea>
+
+            </div>
+
+
+            <button type="submit" class="btn btn-primary">
+                Share 
+            </button>
+
+        </form>
+
+
+        <div class="form-footer">
+
+            <a href="{% url 'dashboard' %}">
+                ← Back to Dashboard
+            </a>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

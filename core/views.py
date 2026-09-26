@@ -1,7 +1,9 @@
+from django.http import request
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from django.contrib.auth.hashers import make_password
-from .models import User, AnonymousProfile
+from .models import User, AnonymousProfile, Category, Post
 import random
 
 
@@ -129,4 +131,64 @@ def dashboard(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
+    categories = Category.objects.all()
+
+    return render(request, 'core/dashboard.html', {
+        'categories': categories
+    })
+
     return render(request, 'core/dashboard.html')
+def create_post(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    categories = Category.objects.all()
+
+    if request.method == 'POST':
+        category_id = request.POST.get('category')
+        title = request.POST.get('title', '').strip()
+        content = request.POST.get('content', '').strip()
+
+        if not category_id or not title or not content:
+            return render(request, 'core/create_post.html', {
+                'categories': categories,
+                'error': 'Please fill in all fields.'
+            })
+
+        category = Category.objects.get(category_id=category_id)
+
+        anonymous_profile = request.user.anonymousprofile
+
+        Post.objects.create(
+            author=anonymous_profile,
+            category=category,
+            title=title,
+            content=content
+        )
+
+        messages.success(
+            request,
+            'Post submitted successfully! Your post has been shared anonymously.'
+        )
+
+        return redirect('dashboard')
+
+    return render(request, 'core/create_post.html', {
+        'categories': categories
+    })
+
+def category_posts(request, category_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    category = Category.objects.get(category_id=category_id)
+
+    posts = Post.objects.filter(
+        category=category,
+        status='active'
+    ).order_by('-created_at')
+
+    return render(request, 'core/category_posts.html', {
+        'category': category,
+        'posts': posts
+    })
