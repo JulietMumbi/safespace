@@ -144,6 +144,8 @@ def create_post(request):
 
     categories = Category.objects.all()
 
+    selected_category_id = request.GET.get('category')
+
     if request.method == 'POST':
         category_id = request.POST.get('category')
         title = request.POST.get('title', '').strip()
@@ -152,6 +154,7 @@ def create_post(request):
         if not category_id or not title or not content:
             return render(request, 'core/create_post.html', {
                 'categories': categories,
+                'selected_category_id': category_id,
                 'error': 'Please fill in all fields.'
             })
 
@@ -174,7 +177,8 @@ def create_post(request):
         return redirect('dashboard')
 
     return render(request, 'core/create_post.html', {
-        'categories': categories
+        'categories': categories,
+        'selected_category_id': selected_category_id
     })
 
 def category_posts(request, category_id):
