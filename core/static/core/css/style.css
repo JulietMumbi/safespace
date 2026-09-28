@@ -669,3 +669,95 @@ input {
         padding: 20px;
     }
 }
+/* =========================
+   PAGINATION
+========================= */
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 35px;
+    padding: 10px 0;
+}
+
+.page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pagination-button,
+.pagination-number,
+.pagination-current {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 13px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+
+/* Previous / Next */
+
+.pagination-button {
+    color: #536b56;
+    background: #ffffff;
+    border: 1px solid #dfe5dc;
+}
+
+.pagination-button:hover {
+    background: #f3f6f1;
+    border-color: #cbd5c8;
+}
+
+
+/* Page numbers */
+
+.pagination-number {
+    color: #536b56;
+    background: #ffffff;
+    border: 1px solid #dfe5dc;
+}
+
+.pagination-number:hover {
+    background: #f3f6f1;
+}
+
+
+/* Current page */
+
+.pagination-current {
+    color: #ffffff;
+    background: #536b56;
+    border: 1px solid #536b56;
+}
+
+
+/* =========================
+   PAGINATION MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+    .pagination {
+        gap: 6px;
+    }
+
+    .pagination-button,
+    .pagination-number,
+    .pagination-current {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+
+}

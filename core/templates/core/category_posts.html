@@ -56,20 +56,87 @@
                             · {{ post.created_at|date:"M d, Y" }}
                         </div>
 
+
                         <h2>{{ post.title }}</h2>
 
-                        <p class="post-content">
-                            {{ post.content }}
-                        </p>
+
+                        <div class="post-content-wrapper">
+
+                            <p class="post-content">
+                                {{ post.content }}
+                            </p>
+
+                        </div>
+
 
                         <div class="post-actions">
-                            <span>Reply</span>
-                            <span>Report</span>
+
+                            <span>
+                                Reply
+                            </span>
+
+                            <span>
+                                Report
+                            </span>
+
                         </div>
 
                     </article>
 
                 {% endfor %}
+
+
+                {% if page_obj.has_other_pages %}
+
+                    <div class="pagination">
+
+                        {% if page_obj.has_previous %}
+
+                            <a href="?page={{ page_obj.previous_page_number }}"
+                               class="pagination-button">
+                                Previous
+                            </a>
+
+                        {% endif %}
+
+
+                        <div class="page-numbers">
+
+                            {% for num in page_obj.paginator.page_range %}
+
+                                {% if page_obj.number == num %}
+
+                                    <span class="pagination-current">
+                                        {{ num }}
+                                    </span>
+
+                                {% else %}
+
+                                    <a href="?page={{ num }}"
+                                       class="pagination-number">
+                                        {{ num }}
+                                    </a>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        {% if page_obj.has_next %}
+
+                            <a href="?page={{ page_obj.next_page_number }}"
+                               class="pagination-button">
+                                Next
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endif %}
+
 
             {% else %}
 
@@ -83,9 +150,9 @@
                     </p>
 
                     <a href="{% url 'create_post' %}?category={{ category.category_id }}"
-   class="btn btn-primary">
-    Share Something
-</a>
+                       class="btn btn-primary">
+                        Share Something
+                    </a>
 
                 </div>
 

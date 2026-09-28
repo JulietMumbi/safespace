@@ -1,5 +1,6 @@
 from django.http import request
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
@@ -192,7 +193,13 @@ def category_posts(request, category_id):
         status='active'
     ).order_by('-created_at')
 
+    paginator = Paginator(posts, 10)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'core/category_posts.html', {
         'category': category,
-        'posts': posts
+        'posts': page_obj,
+        'page_obj': page_obj
     })
