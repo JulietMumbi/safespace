@@ -761,3 +761,111 @@ input {
     }
 
 }
+/* =========================
+   READ MORE
+========================= */
+
+.post-content-wrapper {
+    position: relative;
+}
+
+.post-content {
+    color: #59635b;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.post-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.read-more-button {
+    margin-top: 8px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #536b56;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.read-more-button:hover {
+    color: #789579;
+}
+/* =========================
+   CATEGORY LAYOUT
+========================= */
+
+.category-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 30px;
+    align-items: start;
+}
+
+.posts-section {
+    min-width: 0;
+}
+
+
+/* =========================
+   DISCUSSION SIDEBAR
+========================= */
+
+.discussion-sidebar {
+    position: sticky;
+    top: 100px;
+}
+
+.start-discussion-card {
+    padding: 25px;
+    background: #f3f6f1;
+    border: 1px solid #dfe5dc;
+    border-radius: 14px;
+}
+
+.start-discussion-card h2 {
+    color: #29332b;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.start-discussion-card p {
+    color: #737b74;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.start-discussion-card .btn {
+    width: 100%;
+    text-align: center;
+}
+
+
+/* =========================
+   CATEGORY MOBILE LAYOUT
+========================= */
+
+@media (max-width: 800px) {
+
+    .category-layout {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .discussion-sidebar {
+        position: static;
+        order: -1;
+    }
+
+    .start-discussion-card {
+        padding: 20px;
+    }
+
+}

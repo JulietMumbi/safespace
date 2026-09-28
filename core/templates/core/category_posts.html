@@ -26,22 +26,24 @@
     </nav>
 
 
-    <main class="category-page">
+  <main class="category-page">
 
-        <section class="category-header">
+    <section class="category-header">
 
-            <a href="{% url 'dashboard' %}" class="back-link">
-                ← Back to Dashboard
-            </a>
+        <a href="{% url 'dashboard' %}" class="back-link">
+            ← Back to Dashboard
+        </a>
 
-            <h1>{{ category.name }}</h1>
+        <h1>{{ category.name }}</h1>
 
-            <p>
-                {{ category.description }}
-            </p>
+        <p>
+            {{ category.description }}
+        </p>
 
-        </section>
+    </section>
 
+
+    <div class="category-layout">
 
         <section class="posts-section">
 
@@ -62,9 +64,15 @@
 
                         <div class="post-content-wrapper">
 
-                            <p class="post-content">
+                            <p class="post-content post-preview">
                                 {{ post.content }}
                             </p>
+
+                            <button type="button"
+                                    class="read-more-button"
+                                    onclick="togglePost(this)">
+                                Read more
+                            </button>
 
                         </div>
 
@@ -160,8 +168,71 @@
 
         </section>
 
-    </main>
 
+        <aside class="discussion-sidebar">
+
+            <div class="start-discussion-card">
+
+                <h2>Start a Discussion</h2>
+
+                <p>
+                    Share what's on your mind and connect with
+                    other students anonymously.
+                </p>
+
+                <a href="{% url 'create_post' %}?category={{ category.category_id }}"
+                   class="btn btn-primary">
+                    Share Something
+                </a>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</main>
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const posts = document.querySelectorAll('.post-content-wrapper');
+
+        posts.forEach(function (post) {
+
+            const content = post.querySelector('.post-content');
+            const button = post.querySelector('.read-more-button');
+
+            if (content.scrollHeight <= content.clientHeight) {
+
+                button.style.display = 'none';
+
+            }
+
+        });
+
+    });
+
+
+    function togglePost(button) {
+
+        const content = button.previousElementSibling;
+
+        if (content.classList.contains('post-preview')) {
+
+            content.classList.remove('post-preview');
+            button.textContent = 'Read less';
+
+        } else {
+
+            content.classList.add('post-preview');
+            button.textContent = 'Read more';
+
+        }
+
+    }
+
+</script>
 </body>
 
 </html>
