@@ -95,12 +95,17 @@
                 <label for="content">What's on your mind?</label>
 
                 <textarea
-                    id="content"
-                    name="content"
-                    rows="8"
-                    placeholder="Share what you're experiencing..."
-                    required
-                ></textarea>
+    id="content"
+    name="content"
+    rows="8"
+    maxlength="2000"
+    placeholder="Share what you're experiencing..."
+    required
+></textarea>
+
+<div class="character-counter">
+    <span id="character-count">0</span> / 2000 characters
+</div>
 
             </div>
 
@@ -121,7 +126,29 @@
         </div>
 
     </main>
+<script>
+    const postContent = document.getElementById('content');
+    const characterCount = document.getElementById('character-count');
+    const counterContainer = document.querySelector('.character-counter');
 
+    function updateCharacterCount() {
+        const length = postContent.value.length;
+
+        characterCount.textContent = length;
+
+        counterContainer.classList.remove('near-limit', 'at-limit');
+
+        if (length >= 2000) {
+            counterContainer.classList.add('at-limit');
+        } else if (length >= 1800) {
+            counterContainer.classList.add('near-limit');
+        }
+    }
+
+    postContent.addEventListener('input', updateCharacterCount);
+
+    updateCharacterCount();
+</script>
 </body>
 
 </html>

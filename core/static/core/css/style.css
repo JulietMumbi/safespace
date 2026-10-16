@@ -869,3 +869,21 @@ input {
     }
 
 }
+/* =========================
+   CHARACTER COUNTER
+========================= */
+
+.character-counter {
+    margin-top: 8px;
+    text-align: right;
+    color: #737b74;
+    font-size: 13px;
+}
+
+.character-counter.near-limit {
+    color: #a66b35;
+}
+
+.character-counter.at-limit {
+    color: #b54747;
+}

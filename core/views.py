@@ -139,12 +139,12 @@ def dashboard(request):
     })
 
     return render(request, 'core/dashboard.html')
+
 def create_post(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
     categories = Category.objects.all()
-
     selected_category_id = request.GET.get('category')
 
     if request.method == 'POST':
@@ -159,7 +159,30 @@ def create_post(request):
                 'error': 'Please fill in all fields.'
             })
 
-        category = Category.objects.get(category_id=category_id)
+        if len(title) > 200:
+            return render(request, 'core/create_post.html', {
+                'categories': categories,
+                'selected_category_id': category_id,
+                'error': 'The title cannot exceed 200 characters.'
+            })
+
+        if len(content) > 2000:
+            return render(request, 'core/create_post.html', {
+                'categories': categories,
+                'selected_category_id': category_id,
+                'error': 'Your post cannot exceed 2,000 characters.'
+            })
+
+        category = Category.objects.filter(
+            category_id=category_id
+        ).first()
+
+        if category is None:
+            return render(request, 'core/create_post.html', {
+                'categories': categories,
+                'selected_category_id': category_id,
+                'error': 'Please select a valid category.'
+            })
 
         anonymous_profile = request.user.anonymousprofile
 
@@ -181,6 +204,7 @@ def create_post(request):
         'categories': categories,
         'selected_category_id': selected_category_id
     })
+
 
 def category_posts(request, category_id):
     if not request.user.is_authenticated:
