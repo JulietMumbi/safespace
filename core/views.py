@@ -383,3 +383,109 @@ def category_posts(request, category_id):
         'reply_error': reply_error,
         'reply_error_post_id': reply_error_post_id,
     })
+def moderation_dashboard(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if not (
+        request.user.is_staff
+        or request.user.role in ['admin', 'moderator']
+    ):
+        return HttpResponseForbidden(
+            'You are not authorized to access this page.'
+        )
+
+    if request.method == 'POST':
+        report_id = request.POST.get('report_id')
+        action = request.POST.get('action')
+        notes = request.POST.get('notes', '').strip()
+
+        report = Report.objects.filter(
+            pk=report_id
+        ).select_related('post', 'reply').first()
+
+        if report is None:
+            messages.error(request, 'Report not found.')
+            return redirect('moderation_dashboard')
+
+        if report.status not in ['pending', 'reviewed']:
+            messages.error(
+                request,
+                'This report has already been resolved.'
+            )
+            return redirect('moderation_dashboard')
+
+        if action not in ['remove', 'dismiss', 'escalate']:
+            messages.error(request, 'Invalid moderation action.')
+            return redirect('moderation_dashboard')
+
+        if action == 'remove':
+            target = report.post if report.post_id else report.reply
+
+            if target is None:
+                messages.error(
+                    request,
+                    'The reported content is no longer available.'
+                )
+                return redirect('moderation_dashboard')
+
+            target.status = 'removed'
+            target.save(update_fields=['status'])
+            report.status = 'resolved'
+
+        elif action == 'dismiss':
+            report.status = 'dismissed'
+
+        elif action == 'escalate':
+            report.status = 'reviewed'
+
+        report.save(update_fields=['status'])
+
+        ModerationAction.objects.create(
+            moderator=request.user,
+            post=report.post,
+            reply=report.reply,
+            action_type=action,
+            reason=notes or f'Report {action} by moderator.',
+        )
+
+        messages.success(
+            request,
+            'Moderation action completed successfully.'
+        )
+
+        return redirect('moderation_dashboard')
+
+    reports = Report.objects.select_related(
+        'reporter',
+        'post',
+        'reply',
+        'post__author',
+        'post__category',
+        'reply__author',
+        'reply__post',
+    ).filter(
+        status__in=['pending', 'reviewed']
+    ).order_by('-created_at')
+
+    context = {
+        'reports': reports,
+        'pending_count': Report.objects.filter(
+            status='pending'
+        ).count(),
+        'reviewed_count': Report.objects.filter(
+            status='reviewed'
+        ).count(),
+        'resolved_count': Report.objects.filter(
+            status='resolved'
+        ).count(),
+        'dismissed_count': Report.objects.filter(
+            status='dismissed'
+        ).count(),
+    }
+
+    return render(
+        request,
+        'core/moderation_dashboard.html',
+        context
+    )

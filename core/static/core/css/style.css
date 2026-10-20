@@ -1042,3 +1042,219 @@ input {
     background: #fbefed;
     color: #963f35;
 }
+/* MODERATION DASHBOARD */
+
+.moderation-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 45px 6%;
+}
+
+.moderation-header {
+    margin-bottom: 30px;
+}
+
+.moderation-eyebrow {
+    color: #789579;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.moderation-header h1 {
+    margin: 10px 0;
+    color: #29332b;
+}
+
+.moderation-header > p:last-child {
+    max-width: 650px;
+    color: #68736a;
+    line-height: 1.7;
+}
+
+.moderation-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.moderation-stat {
+    padding: 20px;
+    background: #f7f8f5;
+    border: 1px solid #e5e9e1;
+    border-radius: 12px;
+}
+
+.moderation-stat span {
+    display: block;
+    color: #68736a;
+    font-size: 13px;
+}
+
+.moderation-stat strong {
+    display: block;
+    margin-top: 10px;
+    color: #536b56;
+    font-size: 28px;
+}
+
+.moderation-section-heading {
+    margin-bottom: 20px;
+}
+
+.moderation-section-heading h2 {
+    color: #29332b;
+    font-size: 22px;
+}
+
+.moderation-section-heading p {
+    color: #68736a;
+    font-size: 14px;
+}
+
+.moderation-report {
+    margin-bottom: 22px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e1e6de;
+    border-radius: 12px;
+}
+
+.report-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.report-type {
+    margin-right: 10px;
+    color: #536b56;
+    font-weight: 700;
+}
+
+.report-status,
+.report-date {
+    color: #68736a;
+    font-size: 12px;
+}
+
+.report-details {
+    color: #505b52;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.reported-content {
+    margin: 15px 0;
+    padding: 16px;
+    background: #f7f8f5;
+    border-radius: 9px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.reported-content p {
+    margin-bottom: 0;
+}
+
+.moderation-action-form {
+    padding-top: 18px;
+    border-top: 1px solid #edf0ea;
+}
+
+.moderation-action-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #29332b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.moderation-action-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid #dfe5dc;
+    border-radius: 8px;
+    font: inherit;
+    resize: vertical;
+}
+
+.moderation-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.moderation-button {
+    padding: 10px 14px;
+    border: 1px solid #dfe5dc;
+    border-radius: 8px;
+    background: #fff;
+    color: #536b56;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.remove-button {
+    background: #f8eeeb;
+    border-color: #edd6d0;
+    color: #963f35;
+}
+
+.dismiss-button {
+    background: #f7f8f5;
+}
+
+.escalate-button {
+    background: #edf3eb;
+    border-color: #d8e4d5;
+}
+
+.moderation-button:hover {
+    filter: brightness(0.97);
+}
+
+.moderation-empty {
+    padding: 45px 20px;
+    text-align: center;
+    background: #f7f8f5;
+    border-radius: 12px;
+}
+
+.moderation-empty h3 {
+    color: #29332b;
+}
+
+.moderation-empty p {
+    color: #68736a;
+}
+
+@media (max-width: 700px) {
+    .moderation-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .moderation-page {
+        padding: 30px 5%;
+    }
+
+    .moderation-report {
+        padding: 18px;
+    }
+
+    .moderation-buttons {
+        flex-direction: column;
+    }
+
+    .moderation-button {
+        width: 100%;
+    }
+}

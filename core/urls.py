@@ -9,6 +9,11 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('create-post/', views.create_post, name='create_post'),
     path(
+    'moderation-dashboard/',
+    views.moderation_dashboard,
+    name='moderation_dashboard'
+),
+    path(
     'category/<int:category_id>/',
     views.category_posts,
     name='category_posts'

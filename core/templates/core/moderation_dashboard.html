@@ -1,0 +1,199 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Moderation Dashboard - SafeSpace</title>
+
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">SafeSpace</div>
+
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}">Student Dashboard</a>
+            <a href="{% url 'logout' %}">Log Out</a>
+        </div>
+    </nav>
+
+    <main class="moderation-page">
+
+        <header class="moderation-header">
+            <p class="moderation-eyebrow">SAFESPACE ADMINISTRATION</p>
+            <h1>Moderation Dashboard</h1>
+            <p>
+                Review reported discussions and help maintain a
+                respectful, supportive environment for students.
+            </p>
+        </header>
+
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="message-alert {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="moderation-stats">
+
+            <div class="moderation-stat">
+                <span>Awaiting review</span>
+                <strong>{{ pending_count }}</strong>
+            </div>
+
+            <div class="moderation-stat">
+                <span>Reviewed / escalated</span>
+                <strong>{{ reviewed_count }}</strong>
+            </div>
+
+            <div class="moderation-stat">
+                <span>Resolved</span>
+                <strong>{{ resolved_count }}</strong>
+            </div>
+
+            <div class="moderation-stat">
+                <span>Dismissed</span>
+                <strong>{{ dismissed_count }}</strong>
+            </div>
+
+        </section>
+
+        <section class="moderation-reports">
+            <div class="moderation-section-heading">
+                <div>
+                    <h2>Reports requiring attention</h2>
+                    <p>Review the reported content before taking action.</p>
+                </div>
+            </div>
+
+            {% for report in reports %}
+
+                <article class="moderation-report">
+
+                    <div class="report-heading">
+                        <div>
+                            <span class="report-type">
+                                {% if report.post_id %}
+                                    Reported post
+                                {% else %}
+                                    Reported reply
+                                {% endif %}
+                            </span>
+
+                            <span class="report-status">
+                                {{ report.get_status_display }}
+                            </span>
+                        </div>
+
+                        <span class="report-date">
+                            {{ report.created_at|date:"M d, Y · H:i" }}
+                        </span>
+                    </div>
+
+                    <div class="report-details">
+                        <p>
+                            <strong>Reason:</strong>
+                            {{ report.reason }}
+                        </p>
+
+                        <p>
+                            <strong>Reported by:</strong>
+                            Anonymous report submitter
+                        </p>
+
+                        {% if report.post %}
+                            <p>
+                                <strong>Category:</strong>
+                                {{ report.post.category.name }}
+                            </p>
+
+                            <div class="reported-content">
+                                <strong>{{ report.post.title }}</strong>
+                                <p>{{ report.post.content }}</p>
+                            </div>
+
+                        {% elif report.reply %}
+                            <div class="reported-content">
+                                <strong>Reply to:</strong>
+                                {{ report.reply.post.title }}
+                                <p>{{ report.reply.content }}</p>
+                            </div>
+
+                        {% else %}
+                            <p>The reported content is no longer available.</p>
+                        {% endif %}
+                    </div>
+
+                    <form method="POST" class="moderation-action-form">
+                        {% csrf_token %}
+
+                        <input type="hidden"
+                               name="report_id"
+                               value="{{ report.pk }}">
+
+                        <label for="notes-{{ report.pk }}">
+                            Moderator notes (optional)
+                        </label>
+
+                        <textarea
+                            id="notes-{{ report.pk }}"
+                            name="notes"
+                            rows="2"
+                            maxlength="1000"
+                            placeholder="Record why you took this action..."
+                        ></textarea>
+
+                        <div class="moderation-buttons">
+                            <button
+                                type="submit"
+                                name="action"
+                                value="remove"
+                                class="moderation-button remove-button"
+                                onclick="return confirm('Remove this reported content?');">
+                                Remove Content
+                            </button>
+
+                            <button
+                                type="submit"
+                                name="action"
+                                value="dismiss"
+                                class="moderation-button dismiss-button">
+                                Dismiss Report
+                            </button>
+
+                            <button
+                                type="submit"
+                                name="action"
+                                value="escalate"
+                                class="moderation-button escalate-button">
+                                Escalate for Review
+                            </button>
+                        </div>
+                    </form>
+
+                </article>
+
+            {% empty %}
+
+                <div class="moderation-empty">
+                    <h3>No reports require attention</h3>
+                    <p>
+                        New reports will appear here when students
+                        report posts or replies.
+                    </p>
+                </div>
+
+            {% endfor %}
+        </section>
+
+    </main>
+</body>
+</html>
