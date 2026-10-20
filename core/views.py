@@ -1,11 +1,19 @@
-from django.http import request
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth.hashers import make_password
-from .models import User, AnonymousProfile, Category, Post, Reply
+from django.http import HttpResponseForbidden
+from .models import (
+    User,
+    AnonymousProfile,
+    Category,
+    Post,
+    Reply,
+    Report,
+    ModerationAction,
+)
 import random
 
 
@@ -212,43 +220,153 @@ def category_posts(request, category_id):
     if not request.user.is_authenticated:
         return redirect('login')
 
-    category = Category.objects.get(category_id=category_id)
+    category = Category.objects.filter(
+        category_id=category_id
+    ).first()
+
+    if category is None:
+        return redirect('dashboard')
 
     reply_error = None
     reply_error_post_id = None
 
     if request.method == 'POST':
-        post_id = request.POST.get('post_id')
-        content = request.POST.get('reply_content', '').strip()
-        page_number = request.POST.get('page', '1')
+        action = request.POST.get('action')
 
-        post = Post.objects.filter(
-            post_id=post_id,
-            category=category,
-            status='active'
-        ).first()
+        # REPORT A POST OR REPLY
+        if action == 'report':
+            target_type = request.POST.get('target_type')
+            target_id = request.POST.get('target_id')
+            reason = request.POST.get('reason', '').strip()
 
-        if post is None:
-            reply_error = 'This discussion is no longer available.'
-        elif not content:
-            reply_error = 'Please write something before submitting.'
-        elif len(content) > 1000:
-            reply_error = 'Your reply cannot exceed 1,000 characters.'
-        else:
-            Reply.objects.create(
-                post=post,
-                author=request.user.anonymousprofile,
-                content=content
+            valid_reasons = [
+                'Harassment or bullying',
+                'Hate speech',
+                'Abuse or threats',
+                'Self-harm or suicide concern',
+                'Spam or irrelevant content',
+                'Other',
+            ]
+
+            if reason not in valid_reasons:
+                messages.error(request, 'Please select a valid report reason.')
+                return redirect(
+                    reverse('category_posts', args=[category_id])
+                )
+
+            post = None
+            reply = None
+
+            if target_type == 'post':
+                post = Post.objects.filter(
+                    post_id=target_id,
+                    category=category,
+                    status='active'
+                ).first()
+
+            elif target_type == 'reply':
+                reply = Reply.objects.filter(
+                    pk=target_id,
+                    post__category=category,
+                    status='active',
+                    post__status='active'
+                ).first()
+
+            if post is None and reply is None:
+                messages.error(
+                    request,
+                    'This content is no longer available to report.'
+                )
+                return redirect(
+                    reverse('category_posts', args=[category_id])
+                )
+
+            existing_report = Report.objects.filter(
+                reporter=request.user,
+                status='pending',
             )
 
-            messages.success(request, 'Your reply has been posted.')
+            if post is not None:
+                already_reported = existing_report.filter(
+                    post=post,
+                    reply__isnull=True
+                ).exists()
+            else:
+                already_reported = existing_report.filter(
+                    reply=reply,
+                    post__isnull=True
+                ).exists()
+
+            if already_reported:
+                messages.info(
+                    request,
+                    'You have already reported this content. '
+                    'Your report is awaiting review.'
+                )
+            else:
+                Report.objects.create(
+                    reporter=request.user,
+                    post=post,
+                    reply=reply,
+                    reason=reason,
+                )
+
+                messages.success(
+                    request,
+                    'Report submitted. Thank you for helping keep SafeSpace safe.'
+                )
+
+            anchor_id = (
+                post.post_id if post is not None
+                else reply.post.post_id
+            )
 
             return redirect(
                 f"{reverse('category_posts', args=[category_id])}"
-                f"?page={page_number}#post-{post_id}"
+                f"#post-{anchor_id}"
             )
 
-        reply_error_post_id = post_id
+        # SUBMIT A REPLY
+        if action == 'reply':
+            post_id = request.POST.get('post_id')
+            content = request.POST.get('reply_content', '').strip()
+            page_number = request.POST.get('page', '1')
+
+            post = Post.objects.filter(
+                post_id=post_id,
+                category=category,
+                status='active'
+            ).first()
+
+            if post is None:
+                messages.error(
+                    request,
+                    'This discussion is no longer available.'
+                )
+                return redirect(
+                    reverse('category_posts', args=[category_id])
+                )
+
+            if not content:
+                reply_error = 'Please write something before submitting.'
+            elif len(content) > 1000:
+                reply_error = 'Your reply cannot exceed 1,000 characters.'
+
+            if reply_error:
+                reply_error_post_id = str(post.post_id)
+            else:
+                Reply.objects.create(
+                    post=post,
+                    author=request.user.anonymousprofile,
+                    content=content
+                )
+
+                messages.success(request, 'Your reply has been posted.')
+
+                return redirect(
+                    f"{reverse('category_posts', args=[category_id])}"
+                    f"?page={page_number}#post-{post.post_id}"
+                )
 
     posts_list = Post.objects.filter(
         category=category,
@@ -256,9 +374,7 @@ def category_posts(request, category_id):
     ).order_by('-created_at')
 
     paginator = Paginator(posts_list, 10)
-
-    page_number = request.GET.get('page', '1')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator.get_page(request.GET.get('page', '1'))
 
     return render(request, 'core/category_posts.html', {
         'category': category,

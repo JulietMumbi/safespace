@@ -990,3 +990,55 @@ input {
 .show-replies-button:hover {
     color: #789579;
 }
+.report-form {
+    display: none;
+    margin-top: 14px;
+    padding: 16px;
+    background: #f7f8f5;
+    border-radius: 10px;
+}
+
+.report-form.report-form-open {
+    display: block;
+}
+
+.report-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #29332b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.report-form select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px;
+    margin-bottom: 12px;
+    border: 1px solid #dfe5dc;
+    border-radius: 8px;
+    background: #fff;
+    font: inherit;
+}
+
+.report-form select:focus {
+    outline: none;
+    border-color: #789579;
+}
+.messages-container {
+    margin-bottom: 20px;
+}
+
+.message-alert {
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background: #f1f5ed;
+    color: #405d43;
+    font-size: 14px;
+}
+
+.message-alert.error {
+    background: #fbefed;
+    color: #963f35;
+}
