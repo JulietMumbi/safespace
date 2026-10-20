@@ -3,8 +3,9 @@ from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.urls import reverse
 from django.contrib.auth.hashers import make_password
-from .models import User, AnonymousProfile, Category, Post
+from .models import User, AnonymousProfile, Category, Post, Reply
 import random
 
 
@@ -206,24 +207,63 @@ def create_post(request):
     })
 
 
+
 def category_posts(request, category_id):
     if not request.user.is_authenticated:
         return redirect('login')
 
     category = Category.objects.get(category_id=category_id)
 
-    posts = Post.objects.filter(
+    reply_error = None
+    reply_error_post_id = None
+
+    if request.method == 'POST':
+        post_id = request.POST.get('post_id')
+        content = request.POST.get('reply_content', '').strip()
+        page_number = request.POST.get('page', '1')
+
+        post = Post.objects.filter(
+            post_id=post_id,
+            category=category,
+            status='active'
+        ).first()
+
+        if post is None:
+            reply_error = 'This discussion is no longer available.'
+        elif not content:
+            reply_error = 'Please write something before submitting.'
+        elif len(content) > 1000:
+            reply_error = 'Your reply cannot exceed 1,000 characters.'
+        else:
+            Reply.objects.create(
+                post=post,
+                author=request.user.anonymousprofile,
+                content=content
+            )
+
+            messages.success(request, 'Your reply has been posted.')
+
+            return redirect(
+                f"{reverse('category_posts', args=[category_id])}"
+                f"?page={page_number}#post-{post_id}"
+            )
+
+        reply_error_post_id = post_id
+
+    posts_list = Post.objects.filter(
         category=category,
         status='active'
     ).order_by('-created_at')
 
-    paginator = Paginator(posts, 10)
+    paginator = Paginator(posts_list, 10)
 
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page', '1')
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'core/category_posts.html', {
         'category': category,
         'posts': page_obj,
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'reply_error': reply_error,
+        'reply_error_post_id': reply_error_post_id,
     })

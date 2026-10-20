@@ -77,17 +77,93 @@
                         </div>
 
 
-                        <div class="post-actions">
+                        
+<div class="post-actions">
 
-                            <span>
-                                Reply
-                            </span>
+    <button type="button"
+            class="post-action-button"
+            onclick="toggleReplyForm(this)">
+        Reply
+    </button>
 
-                            <span>
-                                Report
-                            </span>
+    <button type="button" class="post-action-button">
+        Report
+    </button>
 
-                        </div>
+</div>
+
+
+<section class="replies-section">
+
+    {% for reply in post.replies.all %}
+
+        {% if reply.status == 'active' %}
+
+            <div class="reply-card">
+
+                <div class="reply-meta">
+                    {{ reply.author.anonymous_name }}
+                    · {{ reply.created_at|date:"M d, Y" }}
+                </div>
+
+                <p>{{ reply.content }}</p>
+
+            </div>
+
+        {% endif %}
+
+    {% endfor %}
+<button type="button"
+        class="show-replies-button"
+        onclick="toggleReplies(this)"
+        hidden>
+    Show all replies
+</button>
+
+    <form method="POST"
+          class="reply-form"
+          id="reply-form-{{ post.post_id }}">
+
+        {% csrf_token %}
+
+        <input type="hidden"
+               name="post_id"
+               value="{{ post.post_id }}">
+
+        <input type="hidden"
+               name="page"
+               value="{{ page_obj.number }}">
+
+        {% if reply_error and reply_error_post_id == post.post_id|stringformat:"s" %}
+            <p class="error-message">{{ reply_error }}</p>
+        {% endif %}
+
+        <label for="reply-content-{{ post.post_id }}">
+            Write a reply
+        </label>
+
+        <textarea
+            id="reply-content-{{ post.post_id }}"
+            name="reply_content"
+            rows="3"
+            maxlength="1000"
+            placeholder="Share your thoughts or offer support..."
+            required
+            oninput="updateReplyCounter(this)"
+        ></textarea>
+
+        <div class="character-counter">
+            <span class="reply-character-count">0</span> / 1000 characters
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Submit Reply
+        </button>
+
+    </form>
+
+</section>
+
 
                     </article>
 
@@ -231,7 +307,78 @@
         }
 
     }
+    function toggleReplyForm(button) {
+    const postCard = button.closest('.post-card');
+    const form = postCard.querySelector('.reply-form');
 
+    form.classList.toggle('reply-form-open');
+
+    if (form.classList.contains('reply-form-open')) {
+        form.querySelector('textarea').focus();
+    }
+}
+
+function updateReplyCounter(textarea) {
+    const counter = textarea
+        .parentElement
+        .querySelector('.reply-character-count');
+
+    const container = counter.closest('.character-counter');
+    const length = textarea.value.length;
+
+    counter.textContent = length;
+
+    container.classList.remove('near-limit', 'at-limit');
+
+    if (length >= 1000) {
+        container.classList.add('at-limit');
+    } else if (length >= 900) {
+        container.classList.add('near-limit');
+    }
+}
+function setupReplyVisibility() {
+    document.querySelectorAll('.replies-section').forEach(function (section) {
+        const replies = section.querySelectorAll('.reply-card');
+        const button = section.querySelector('.show-replies-button');
+
+        if (!button) return;
+
+        replies.forEach(function (reply, index) {
+            reply.hidden = index >= 2;
+        });
+
+        if (replies.length > 2) {
+            button.hidden = false;
+            button.textContent = `Show all ${replies.length} replies`;
+            button.dataset.expanded = 'false';
+        } else {
+            button.hidden = true;
+        }
+    });
+}
+function toggleReplies(button) {
+    const section = button.closest('.replies-section');
+    const replies = section.querySelectorAll('.reply-card');
+
+    const isExpanded = button.dataset.expanded === 'true';
+
+    replies.forEach(function (reply, index) {
+        if (isExpanded) {
+            // Collapse: show only the first 2 replies
+            reply.hidden = index >= 2;
+        } else {
+            // Expand: show all replies
+            reply.hidden = false;
+        }
+    });
+
+    button.dataset.expanded = isExpanded ? 'false' : 'true';
+
+    button.textContent = isExpanded
+        ? `Show all ${replies.length} replies`
+        : 'Show fewer replies';
+}
+document.addEventListener('DOMContentLoaded', setupReplyVisibility);
 </script>
 </body>
 
