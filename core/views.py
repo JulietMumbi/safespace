@@ -123,13 +123,22 @@ def user_login(request):
 
             login(request, user)
 
-            return redirect('dashboard')
+            # Redirect users according to their roles
+            if user.role == 'admin':
+                return redirect('moderation_dashboard')
+
+            elif user.role == 'moderator':
+                return redirect('moderation_dashboard')
+
+            else:
+                return redirect('dashboard')
 
         return render(request, 'core/login.html', {
             'error': 'Invalid email or password.'
         })
 
     return render(request, 'core/login.html')
+
 
 
 def user_logout(request):
@@ -383,12 +392,13 @@ def category_posts(request, category_id):
         'reply_error': reply_error,
         'reply_error_post_id': reply_error_post_id,
     })
+
 def moderation_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
     if not (
-        request.user.is_staff
+        request.user.is_superuser
         or request.user.role in ['admin', 'moderator']
     ):
         return HttpResponseForbidden(
@@ -456,6 +466,53 @@ def moderation_dashboard(request):
 
         return redirect('moderation_dashboard')
 
+    # Count reports by status
+    pending_count = Report.objects.filter(
+        status='pending'
+    ).count()
+
+    reviewed_count = Report.objects.filter(
+        status='reviewed'
+    ).count()
+
+    resolved_count = Report.objects.filter(
+        status='resolved'
+    ).count()
+
+    dismissed_count = Report.objects.filter(
+        status='dismissed'
+    ).count()
+
+    # Count content removed by moderation
+    removed_posts = Post.objects.filter(
+        status='removed'
+    ).select_related(
+        'author', 'category'
+    ).order_by('-created_at')
+
+    removed_replies = Reply.objects.filter(
+        status='removed'
+    ).select_related(
+        'author', 'post', 'post__category'
+    ).order_by('-created_at')
+
+    removed_count = removed_posts.count() + removed_replies.count()
+
+    # Choose which section to display
+    selected_filter = request.GET.get('status', 'attention')
+
+    valid_filters = [
+        'attention',
+        'pending',
+        'reviewed',
+        'resolved',
+        'dismissed',
+        'removed',
+    ]
+
+    if selected_filter not in valid_filters:
+        selected_filter = 'attention'
+
     reports = Report.objects.select_related(
         'reporter',
         'post',
@@ -464,24 +521,27 @@ def moderation_dashboard(request):
         'post__category',
         'reply__author',
         'reply__post',
-    ).filter(
-        status__in=['pending', 'reviewed']
     ).order_by('-created_at')
+
+    if selected_filter == 'attention':
+        reports = reports.filter(
+            status__in=['pending', 'reviewed']
+        )
+    elif selected_filter in ['pending', 'reviewed', 'resolved', 'dismissed']:
+        reports = reports.filter(status=selected_filter)
+    else:
+        reports = reports.none()
 
     context = {
         'reports': reports,
-        'pending_count': Report.objects.filter(
-            status='pending'
-        ).count(),
-        'reviewed_count': Report.objects.filter(
-            status='reviewed'
-        ).count(),
-        'resolved_count': Report.objects.filter(
-            status='resolved'
-        ).count(),
-        'dismissed_count': Report.objects.filter(
-            status='dismissed'
-        ).count(),
+        'pending_count': pending_count,
+        'reviewed_count': reviewed_count,
+        'resolved_count': resolved_count,
+        'dismissed_count': dismissed_count,
+        'removed_count': removed_count,
+        'removed_posts': removed_posts,
+        'removed_replies': removed_replies,
+        'selected_filter': selected_filter,
     }
 
     return render(

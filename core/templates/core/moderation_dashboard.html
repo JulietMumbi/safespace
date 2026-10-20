@@ -1,3 +1,4 @@
+
 {% load static %}
 
 <!DOCTYPE html>
@@ -5,77 +6,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Moderation Dashboard - SafeSpace</title>
-
     <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="logo">SafeSpace</div>
+<nav class="navbar">
+    <div class="logo">SafeSpace</div>
+    <div class="nav-links">
+        <a href="{% url 'dashboard' %}">Student Dashboard</a>
+        <a href="{% url 'logout' %}">Log Out</a>
+    </div>
+</nav>
 
-        <div class="nav-links">
-            <a href="{% url 'dashboard' %}">Student Dashboard</a>
-            <a href="{% url 'logout' %}">Log Out</a>
+<main class="moderation-page">
+
+    <header class="moderation-header">
+        <p class="moderation-eyebrow">SAFESPACE ADMINISTRATION</p>
+        <h1>Moderation Dashboard</h1>
+        <p>Review reported discussions and help maintain a respectful, supportive environment for students.</p>
+    </header>
+
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="message-alert {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
         </div>
-    </nav>
+    {% endif %}
 
-    <main class="moderation-page">
+    <section class="moderation-stats">
 
-        <header class="moderation-header">
-            <p class="moderation-eyebrow">SAFESPACE ADMINISTRATION</p>
-            <h1>Moderation Dashboard</h1>
-            <p>
-                Review reported discussions and help maintain a
-                respectful, supportive environment for students.
-            </p>
-        </header>
+        <a class="moderation-stat moderation-stat-link {% if selected_filter == 'pending' %}stat-active{% endif %}"
+           href="{% url 'moderation_dashboard' %}?status=pending">
+            <span>Awaiting review</span>
+            <strong>{{ pending_count }}</strong>
+            <small>View pending reports</small>
+        </a>
 
-        {% if messages %}
-            <div class="messages-container">
-                {% for message in messages %}
-                    <div class="message-alert {{ message.tags }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        <a class="moderation-stat moderation-stat-link {% if selected_filter == 'reviewed' %}stat-active{% endif %}"
+           href="{% url 'moderation_dashboard' %}?status=reviewed">
+            <span>Reviewed / escalated</span>
+            <strong>{{ reviewed_count }}</strong>
+            <small>View escalated reports</small>
+        </a>
 
-        <section class="moderation-stats">
+        <a class="moderation-stat moderation-stat-link {% if selected_filter == 'resolved' %}stat-active{% endif %}"
+           href="{% url 'moderation_dashboard' %}?status=resolved">
+            <span>Resolved</span>
+            <strong>{{ resolved_count }}</strong>
+            <small>View resolved reports</small>
+        </a>
 
-            <div class="moderation-stat">
-                <span>Awaiting review</span>
-                <strong>{{ pending_count }}</strong>
-            </div>
+        <a class="moderation-stat moderation-stat-link {% if selected_filter == 'dismissed' %}stat-active{% endif %}"
+           href="{% url 'moderation_dashboard' %}?status=dismissed">
+            <span>Dismissed</span>
+            <strong>{{ dismissed_count }}</strong>
+            <small>View dismissed reports</small>
+        </a>
 
-            <div class="moderation-stat">
-                <span>Reviewed / escalated</span>
-                <strong>{{ reviewed_count }}</strong>
-            </div>
+        <a class="moderation-stat moderation-stat-link {% if selected_filter == 'removed' %}stat-active{% endif %}"
+           href="{% url 'moderation_dashboard' %}?status=removed">
+            <span>Removed content</span>
+            <strong>{{ removed_count }}</strong>
+            <small>View removed posts and replies</small>
+        </a>
 
-            <div class="moderation-stat">
-                <span>Resolved</span>
-                <strong>{{ resolved_count }}</strong>
-            </div>
+    </section>
 
-            <div class="moderation-stat">
-                <span>Dismissed</span>
-                <strong>{{ dismissed_count }}</strong>
-            </div>
-
-        </section>
+    {% if selected_filter == 'removed' %}
 
         <section class="moderation-reports">
             <div class="moderation-section-heading">
                 <div>
-                    <h2>Reports requiring attention</h2>
-                    <p>Review the reported content before taking action.</p>
+                    <h2>Removed Content</h2>
+                    <p>Posts and replies removed by moderators.</p>
                 </div>
             </div>
 
-            {% for report in reports %}
+            {% for post in removed_posts %}
+                <article class="moderation-report">
+                    <div class="report-heading">
+                        <div>
+                            <span class="report-type">Removed post</span>
+                            <span class="report-status">Removed</span>
+                        </div>
+                        <span class="report-date">
+                            {{ post.created_at|date:"M d, Y · H:i" }}
+                        </span>
+                    </div>
 
+                    <div class="report-details">
+                        <p><strong>Category:</strong> {{ post.category.name }}</p>
+                        <div class="reported-content">
+                            <strong>{{ post.title }}</strong>
+                            <p>{{ post.content }}</p>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+
+            {% for reply in removed_replies %}
+                <article class="moderation-report">
+                    <div class="report-heading">
+                        <div>
+                            <span class="report-type">Removed reply</span>
+                            <span class="report-status">Removed</span>
+                        </div>
+                        <span class="report-date">
+                            {{ reply.created_at|date:"M d, Y · H:i" }}
+                        </span>
+                    </div>
+
+                    <div class="report-details">
+                        <p>
+                            <strong>Reply to:</strong>
+                            {{ reply.post.title }}
+                        </p>
+                        <div class="reported-content">
+                            <p>{{ reply.content }}</p>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+
+            {% if not removed_posts and not removed_replies %}
+                <div class="moderation-empty">
+                    <h3>No removed content</h3>
+                    <p>Content removed by moderators will appear here.</p>
+                </div>
+            {% endif %}
+        </section>
+
+    {% else %}
+
+        <section class="moderation-reports">
+            <div class="moderation-section-heading">
+                <div>
+                    <h2>
+                        {% if selected_filter == 'pending' %}
+                            Pending Reports
+                        {% elif selected_filter == 'reviewed' %}
+                            Reviewed / Escalated Reports
+                        {% elif selected_filter == 'resolved' %}
+                            Resolved Reports
+                        {% elif selected_filter == 'dismissed' %}
+                            Dismissed Reports
+                        {% else %}
+                            Reports Requiring Attention
+                        {% endif %}
+                    </h2>
+                    <p>Review report details and their current status.</p>
+                </div>
+
+                <a href="{% url 'moderation_dashboard' %}?status=attention">
+                    View reports requiring attention
+                </a>
+            </div>
+
+            {% for report in reports %}
                 <article class="moderation-report">
 
                     <div class="report-heading">
@@ -87,113 +178,92 @@
                                     Reported reply
                                 {% endif %}
                             </span>
-
                             <span class="report-status">
                                 {{ report.get_status_display }}
                             </span>
                         </div>
-
                         <span class="report-date">
                             {{ report.created_at|date:"M d, Y · H:i" }}
                         </span>
                     </div>
 
                     <div class="report-details">
-                        <p>
-                            <strong>Reason:</strong>
-                            {{ report.reason }}
-                        </p>
-
-                        <p>
-                            <strong>Reported by:</strong>
-                            Anonymous report submitter
-                        </p>
+                        <p><strong>Reason:</strong> {{ report.reason }}</p>
+                        <p><strong>Reported by:</strong> Anonymous report submitter</p>
 
                         {% if report.post %}
-                            <p>
-                                <strong>Category:</strong>
-                                {{ report.post.category.name }}
-                            </p>
-
+                            <p><strong>Category:</strong> {{ report.post.category.name }}</p>
                             <div class="reported-content">
                                 <strong>{{ report.post.title }}</strong>
                                 <p>{{ report.post.content }}</p>
                             </div>
-
                         {% elif report.reply %}
                             <div class="reported-content">
-                                <strong>Reply to:</strong>
-                                {{ report.reply.post.title }}
+                                <strong>Reply to:</strong> {{ report.reply.post.title }}
                                 <p>{{ report.reply.content }}</p>
                             </div>
-
                         {% else %}
                             <p>The reported content is no longer available.</p>
                         {% endif %}
                     </div>
 
-                    <form method="POST" class="moderation-action-form">
-                        {% csrf_token %}
+                    {% if report.status == 'pending' or report.status == 'reviewed' %}
+                        <form method="POST" class="moderation-action-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="report_id" value="{{ report.pk }}">
 
-                        <input type="hidden"
-                               name="report_id"
-                               value="{{ report.pk }}">
+                            <label for="notes-{{ report.pk }}">
+                                Moderator notes (optional)
+                            </label>
 
-                        <label for="notes-{{ report.pk }}">
-                            Moderator notes (optional)
-                        </label>
+                            <textarea
+                                id="notes-{{ report.pk }}"
+                                name="notes"
+                                rows="2"
+                                maxlength="1000"
+                                placeholder="Record why you took this action..."
+                            ></textarea>
 
-                        <textarea
-                            id="notes-{{ report.pk }}"
-                            name="notes"
-                            rows="2"
-                            maxlength="1000"
-                            placeholder="Record why you took this action..."
-                        ></textarea>
+                            <div class="moderation-buttons">
+                                <button
+                                    type="submit"
+                                    name="action"
+                                    value="remove"
+                                    class="moderation-button remove-button"
+                                    onclick="return confirm('Remove this reported content?');">
+                                    Remove Content
+                                </button>
 
-                        <div class="moderation-buttons">
-                            <button
-                                type="submit"
-                                name="action"
-                                value="remove"
-                                class="moderation-button remove-button"
-                                onclick="return confirm('Remove this reported content?');">
-                                Remove Content
-                            </button>
+                                <button
+                                    type="submit"
+                                    name="action"
+                                    value="dismiss"
+                                    class="moderation-button dismiss-button">
+                                    Dismiss Report
+                                </button>
 
-                            <button
-                                type="submit"
-                                name="action"
-                                value="dismiss"
-                                class="moderation-button dismiss-button">
-                                Dismiss Report
-                            </button>
-
-                            <button
-                                type="submit"
-                                name="action"
-                                value="escalate"
-                                class="moderation-button escalate-button">
-                                Escalate for Review
-                            </button>
-                        </div>
-                    </form>
+                                <button
+                                    type="submit"
+                                    name="action"
+                                    value="escalate"
+                                    class="moderation-button escalate-button">
+                                    Escalate for Review
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
 
                 </article>
-
             {% empty %}
-
                 <div class="moderation-empty">
-                    <h3>No reports require attention</h3>
-                    <p>
-                        New reports will appear here when students
-                        report posts or replies.
-                    </p>
+                    <h3>No reports in this section</h3>
+                    <p>Reports matching this status will appear here.</p>
                 </div>
-
             {% endfor %}
         </section>
 
-    </main>
+    {% endif %}
+
+</main>
 </body>
 </html>

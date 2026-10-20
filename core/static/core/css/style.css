@@ -1258,3 +1258,47 @@ input {
         width: 100%;
     }
 }
+
+.moderation-stat-link {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.moderation-stat-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.moderation-stat-link:focus-visible {
+    outline: 2px solid #6b8f71;
+    outline-offset: 3px;
+}
+
+.moderation-stat-link small {
+    font-size: 0.8rem;
+    opacity: 0.75;
+}
+
+.moderation-stat-link.stat-active {
+    border: 2px solid #6b8f71;
+    background-color: #edf3eb;
+}
+
+.moderation-section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.moderation-section-heading a {
+    color: #52765a;
+    text-decoration: underline;
+    font-size: 0.9rem;
+}
