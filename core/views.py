@@ -393,6 +393,7 @@ def category_posts(request, category_id):
         'reply_error_post_id': reply_error_post_id,
     })
 
+
 def moderation_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -405,6 +406,7 @@ def moderation_dashboard(request):
             'You are not authorized to access this page.'
         )
 
+    # Handle moderation actions
     if request.method == 'POST':
         report_id = request.POST.get('report_id')
         action = request.POST.get('action')
@@ -463,10 +465,9 @@ def moderation_dashboard(request):
             request,
             'Moderation action completed successfully.'
         )
-
         return redirect('moderation_dashboard')
 
-    # Count reports by status
+    # Counts displayed on the dashboard placards
     pending_count = Report.objects.filter(
         status='pending'
     ).count()
@@ -483,7 +484,6 @@ def moderation_dashboard(request):
         status='dismissed'
     ).count()
 
-    # Count content removed by moderation
     removed_posts = Post.objects.filter(
         status='removed'
     ).select_related(
@@ -498,11 +498,11 @@ def moderation_dashboard(request):
 
     removed_count = removed_posts.count() + removed_replies.count()
 
-    # Choose which section to display
-    selected_filter = request.GET.get('status', 'attention')
+    # Overview is the default page: show placards only
+    selected_filter = request.GET.get('status', 'overview')
 
     valid_filters = [
-        'attention',
+        'overview',
         'pending',
         'reviewed',
         'resolved',
@@ -511,7 +511,7 @@ def moderation_dashboard(request):
     ]
 
     if selected_filter not in valid_filters:
-        selected_filter = 'attention'
+        selected_filter = 'overview'
 
     reports = Report.objects.select_related(
         'reporter',
@@ -523,11 +523,13 @@ def moderation_dashboard(request):
         'reply__post',
     ).order_by('-created_at')
 
-    if selected_filter == 'attention':
-        reports = reports.filter(
-            status__in=['pending', 'reviewed']
-        )
-    elif selected_filter in ['pending', 'reviewed', 'resolved', 'dismissed']:
+    # Show only the category selected by the moderator
+    if selected_filter in [
+        'pending',
+        'reviewed',
+        'resolved',
+        'dismissed',
+    ]:
         reports = reports.filter(status=selected_filter)
     else:
         reports = reports.none()
