@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth.hashers import make_password
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, request
 from .models import (
     User,
     AnonymousProfile,
@@ -61,15 +61,17 @@ def generate_anonymous_name():
             return name
 
 
+
 def signup(request):
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
         confirm_password = request.POST.get('confirm_password', '')
+        anonymous_name = request.POST.get('anonymous_name', '').strip()
 
         if not email or not password or not confirm_password:
             return render(request, 'core/signup.html', {
-                'error': 'Please fill in all fields.'
+                'error': 'Please fill in all required fields.'
             })
 
         if password != confirm_password:
@@ -82,14 +84,24 @@ def signup(request):
                 'error': 'An account with this email already exists.'
             })
 
+        # Check whether the chosen nickname is already taken
+        if anonymous_name and AnonymousProfile.objects.filter(
+            anonymous_name__iexact=anonymous_name
+        ).exists():
+            return render(request, 'core/signup.html', {
+                'error': 'This nickname is already taken. Please choose another.'
+            })
+
+        # Generate a nickname if the student leaves the field blank
+        if not anonymous_name:
+            anonymous_name = generate_anonymous_name()
+
         user = User.objects.create(
             email=email,
             password=make_password(password),
             role='student',
             account_status='active'
         )
-
-        anonymous_name = generate_anonymous_name()
 
         AnonymousProfile.objects.create(
             user=user,
