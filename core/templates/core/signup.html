@@ -58,19 +58,23 @@
                 >
             </div>
 
+
 <div class="form-group">
-    <label for="anonymous_name">Anonymous Nickname (Optional)</label>
+    <label for="anonymous_name">Choose an Anonymous Nickname (Optional)</label>
 
-    <input
-        type="text"
-        id="anonymous_name"
-        name="anonymous_name"
-        maxlength="50"
-        placeholder="Choose a nickname or leave blank"
-    >
+    <select id="anonymous_name" name="anonymous_name">
+        <option value="">Generate a nickname for me</option>
 
-    <small>Choose a unique nickname to use in SafeSpace.
-        If you leave this blank, we'll generate one for you.
+        {% for name in available_names %}
+            <option value="{{ name }}">
+                {{ name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <small>
+        Choose an available nickname or leave this blank
+        and SafeSpace will generate one for you.
     </small>
 </div>
 

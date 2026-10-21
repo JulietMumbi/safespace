@@ -61,8 +61,26 @@ def generate_anonymous_name():
             return name
 
 
+def get_available_anonymous_names(limit=20):
+    names = []
+    selected_names = set()
+    attempts = 0
+
+    while len(names) < limit and attempts < limit * 20:
+        name = generate_anonymous_name()
+        attempts += 1
+
+        if name.lower() not in selected_names:
+            names.append(name)
+            selected_names.add(name.lower())
+
+    return names
+
+
 
 def signup(request):
+    available_names = get_available_anonymous_names()
+
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
@@ -71,28 +89,30 @@ def signup(request):
 
         if not email or not password or not confirm_password:
             return render(request, 'core/signup.html', {
-                'error': 'Please fill in all required fields.'
+                'error': 'Please fill in all required fields.',
+                'available_names': available_names,
             })
 
         if password != confirm_password:
             return render(request, 'core/signup.html', {
-                'error': 'Passwords do not match.'
+                'error': 'Passwords do not match.',
+                'available_names': available_names,
             })
 
         if User.objects.filter(email=email).exists():
             return render(request, 'core/signup.html', {
-                'error': 'An account with this email already exists.'
+                'error': 'An account with this email already exists.',
+                'available_names': available_names,
             })
 
-        # Check whether the chosen nickname is already taken
         if anonymous_name and AnonymousProfile.objects.filter(
             anonymous_name__iexact=anonymous_name
         ).exists():
             return render(request, 'core/signup.html', {
-                'error': 'This nickname is already taken. Please choose another.'
+                'error': 'That nickname is already taken. Please choose another.',
+                'available_names': available_names,
             })
 
-        # Generate a nickname if the student leaves the field blank
         if not anonymous_name:
             anonymous_name = generate_anonymous_name()
 
@@ -112,7 +132,9 @@ def signup(request):
 
         return redirect('dashboard')
 
-    return render(request, 'core/signup.html')
+    return render(request, 'core/signup.html', {
+        'available_names': available_names,
+    })
 
 
 def user_login(request):
