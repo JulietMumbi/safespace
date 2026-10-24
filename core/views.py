@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.urls import reverse
+from django.db import transaction, IntegrityError
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponseForbidden, request
 from .models import (
@@ -21,34 +22,20 @@ def home(request):
     return render(request, 'core/home.html')
 
 
+
 def generate_anonymous_name():
     adjectives = [
-        'Quiet',
-        'Brave',
-        'Calm',
-        'Kind',
-        'Gentle',
-        'Hopeful',
-        'Peaceful',
-        'Bright',
-        'Strong',
-        'Caring'
+        'Quiet', 'Brave', 'Calm', 'Kind', 'Gentle',
+        'Hopeful', 'Peaceful', 'Bright', 'Strong', 'Caring'
     ]
 
     nouns = [
-        'Moon',
-        'Star',
-        'Cloud',
-        'River',
-        'Sun',
-        'Sky',
-        'Leaf',
-        'Light',
-        'Breeze',
-        'Dawn'
+        'Moon', 'Star', 'Cloud', 'River', 'Sun',
+        'Sky', 'Leaf', 'Light', 'Breeze', 'Dawn'
     ]
 
-    while True:
+    # Try random combinations first
+    for _ in range(100):
         name = (
             f"{random.choice(adjectives)}"
             f"{random.choice(nouns)}"
@@ -56,9 +43,26 @@ def generate_anonymous_name():
         )
 
         if not AnonymousProfile.objects.filter(
-            anonymous_name=name
+            anonymous_name__iexact=name
         ).exists():
             return name
+
+    # Check every combination if random attempts fail
+    for adjective in adjectives:
+        for noun in nouns:
+            for number in range(10, 100):
+                name = f"{adjective}{noun}{number}"
+
+                if not AnonymousProfile.objects.filter(
+                    anonymous_name__iexact=name
+                ).exists():
+                    return name
+
+    raise ValueError(
+        "No anonymous nicknames are currently available."
+    )
+
+
 
 
 def get_available_anonymous_names(limit=20):
@@ -67,7 +71,11 @@ def get_available_anonymous_names(limit=20):
     attempts = 0
 
     while len(names) < limit and attempts < limit * 20:
-        name = generate_anonymous_name()
+        try:
+            name = generate_anonymous_name()
+        except ValueError:
+            break
+
         attempts += 1
 
         if name.lower() not in selected_names:
@@ -75,6 +83,8 @@ def get_available_anonymous_names(limit=20):
             selected_names.add(name.lower())
 
     return names
+
+
 
 
 
@@ -87,49 +97,54 @@ def signup(request):
         confirm_password = request.POST.get('confirm_password', '')
         anonymous_name = request.POST.get('anonymous_name', '').strip()
 
-        if not email or not password or not confirm_password:
+        def signup_error(message):
             return render(request, 'core/signup.html', {
-                'error': 'Please fill in all required fields.',
-                'available_names': available_names,
+                'error': message,
+                'available_names': get_available_anonymous_names(),
             })
+
+        if not email or not password or not confirm_password:
+            return signup_error('Please fill in all required fields.')
 
         if password != confirm_password:
-            return render(request, 'core/signup.html', {
-                'error': 'Passwords do not match.',
-                'available_names': available_names,
-            })
+            return signup_error('Passwords do not match.')
 
         if User.objects.filter(email=email).exists():
-            return render(request, 'core/signup.html', {
-                'error': 'An account with this email already exists.',
-                'available_names': available_names,
-            })
+            return signup_error(
+                'An account with this email already exists.'
+            )
 
-        if anonymous_name and AnonymousProfile.objects.filter(
-            anonymous_name__iexact=anonymous_name
-        ).exists():
-            return render(request, 'core/signup.html', {
-                'error': 'That nickname is already taken. Please choose another.',
-                'available_names': available_names,
-            })
+        try:
+            with transaction.atomic():
+                if anonymous_name and AnonymousProfile.objects.filter(
+                    anonymous_name__iexact=anonymous_name
+                ).exists():
+                    return signup_error(
+                        'That nickname is already taken. Please choose another.'
+                    )
 
-        if not anonymous_name:
-            anonymous_name = generate_anonymous_name()
+                if not anonymous_name:
+                    anonymous_name = generate_anonymous_name()
 
-        user = User.objects.create(
-            email=email,
-            password=make_password(password),
-            role='student',
-            account_status='active'
-        )
+                user = User.objects.create_user(
+                    email=email,
+                    password=password,
+                    role='student',
+                    account_status='active'
+                )
 
-        AnonymousProfile.objects.create(
-            user=user,
-            anonymous_name=anonymous_name
-        )
+                AnonymousProfile.objects.create(
+                    user=user,
+                    anonymous_name=anonymous_name
+                )
+
+        except IntegrityError:
+            return signup_error(
+                'That email or nickname is no longer available. '
+                'Please try again.'
+            )
 
         login(request, user)
-
         return redirect('dashboard')
 
     return render(request, 'core/signup.html', {
