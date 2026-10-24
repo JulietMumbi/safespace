@@ -466,11 +466,63 @@ def moderation_dashboard(request):
             'You are not authorized to access this page.'
         )
 
-    # Handle existing report moderation actions
+    # Handle moderation actions
     if request.method == 'POST':
-        report_id = request.POST.get('report_id')
         action = request.POST.get('action')
         notes = request.POST.get('notes', '').strip()
+
+        # Actions for AI-flagged posts
+        ai_post_id = request.POST.get('ai_post_id')
+
+        if ai_post_id:
+            post = Post.objects.filter(
+                pk=ai_post_id,
+                status='flagged'
+            ).first()
+
+            if post is None:
+                messages.error(
+                    request,
+                    'AI-flagged post not found or already reviewed.'
+                )
+                return redirect(
+                    'moderation_dashboard'
+                ) + '?status=ai_flagged'
+
+            if action not in ['remove', 'dismiss']:
+                messages.error(request, 'Invalid moderation action.')
+                return redirect(
+                    'moderation_dashboard'
+                ) + '?status=ai_flagged'
+
+            if action == 'remove':
+                post.status = 'removed'
+                post.save(update_fields=['status'])
+                action_type = 'remove'
+                success_message = 'AI-flagged post removed successfully.'
+
+            else:
+                post.status = 'active'
+                post.save(update_fields=['status'])
+                action_type = 'dismiss'
+                success_message = 'AI flag dismissed. The post is now active.'
+
+            ModerationAction.objects.create(
+                moderator=request.user,
+                post=post,
+                action_type=action_type,
+                reason=notes or f'AI-flagged post {action_type}d by moderator.',
+            )
+
+            messages.success(request, success_message)
+
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect(
+                '/moderation-dashboard/?status=ai_flagged'
+            )
+
+        # Existing user-reported content actions
+        report_id = request.POST.get('report_id')
 
         report = Report.objects.filter(
             pk=report_id
@@ -548,14 +600,14 @@ def moderation_dashboard(request):
 
     removed_count = removed_posts.count() + removed_replies.count()
 
-    # AI-flagged posts awaiting moderator review
-    ai_flagged_posts = Post.objects.filter(
+    # AI-flagged posts
+    all_ai_flagged_posts = Post.objects.filter(
         status='flagged'
     ).select_related(
         'author', 'category'
     ).order_by('-created_at')
 
-    ai_flagged_count = ai_flagged_posts.count()
+    ai_flagged_count = all_ai_flagged_posts.count()
 
     selected_filter = request.GET.get('status', 'overview')
 
@@ -572,7 +624,6 @@ def moderation_dashboard(request):
     if selected_filter not in valid_filters:
         selected_filter = 'overview'
 
-    # Existing report list
     reports = Report.objects.select_related(
         'reporter',
         'post',
@@ -593,9 +644,11 @@ def moderation_dashboard(request):
     else:
         reports = reports.none()
 
-    # Only display AI-flagged posts on their dedicated filter
-    if selected_filter != 'ai_flagged':
-        ai_flagged_posts = Post.objects.none()
+    ai_flagged_posts = (
+        all_ai_flagged_posts
+        if selected_filter == 'ai_flagged'
+        else Post.objects.none()
+    )
 
     context = {
         'reports': reports,
@@ -616,3 +669,4 @@ def moderation_dashboard(request):
         'core/moderation_dashboard.html',
         context
     )
+
