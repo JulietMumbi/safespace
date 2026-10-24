@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from core.toxicity import load_toxicity_model
 from django.urls import reverse
 from django.db import transaction, IntegrityError
 from django.contrib.auth.hashers import make_password
@@ -88,6 +89,7 @@ def get_available_anonymous_names(limit=20):
 
 
 
+
 def signup(request):
     available_names = get_available_anonymous_names()
 
@@ -126,9 +128,9 @@ def signup(request):
                 if not anonymous_name:
                     anonymous_name = generate_anonymous_name()
 
-                user = User.objects.create_user(
+                user = User.objects.create(
                     email=email,
-                    password=password,
+                    password=make_password(password),
                     role='student',
                     account_status='active'
                 )
@@ -150,6 +152,7 @@ def signup(request):
     return render(request, 'core/signup.html', {
         'available_names': available_names,
     })
+
 
 
 def user_login(request):
@@ -207,6 +210,7 @@ def dashboard(request):
 
     return render(request, 'core/dashboard.html')
 
+
 def create_post(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -219,37 +223,36 @@ def create_post(request):
         title = request.POST.get('title', '').strip()
         content = request.POST.get('content', '').strip()
 
-        if not category_id or not title or not content:
+        def show_error(message):
             return render(request, 'core/create_post.html', {
                 'categories': categories,
                 'selected_category_id': category_id,
-                'error': 'Please fill in all fields.'
+                'error': message
             })
+
+        if not category_id or not title or not content:
+            return show_error('Please fill in all fields.')
 
         if len(title) > 200:
-            return render(request, 'core/create_post.html', {
-                'categories': categories,
-                'selected_category_id': category_id,
-                'error': 'The title cannot exceed 200 characters.'
-            })
+            return show_error('The title cannot exceed 200 characters.')
 
         if len(content) > 2000:
-            return render(request, 'core/create_post.html', {
-                'categories': categories,
-                'selected_category_id': category_id,
-                'error': 'Your post cannot exceed 2,000 characters.'
-            })
+            return show_error('Your post cannot exceed 2,000 characters.')
 
         category = Category.objects.filter(
             category_id=category_id
         ).first()
 
         if category is None:
-            return render(request, 'core/create_post.html', {
-                'categories': categories,
-                'selected_category_id': category_id,
-                'error': 'Please select a valid category.'
-            })
+            return show_error('Please select a valid category.')
+
+        try:
+            model = load_toxicity_model()
+            prediction = int(model.predict([f"{title} {content}"])[0])
+        except Exception:
+            return show_error(
+                'We could not check your post right now. Please try again later.'
+            )
 
         anonymous_profile = request.user.anonymousprofile
 
@@ -257,13 +260,20 @@ def create_post(request):
             author=anonymous_profile,
             category=category,
             title=title,
-            content=content
+            content=content,
+            status='flagged' if prediction == 1 else 'active'
         )
 
-        messages.success(
-            request,
-            'Post submitted successfully! Your post has been shared anonymously.'
-        )
+        if prediction == 1:
+            messages.info(
+                request,
+                'Your post was submitted for moderator review.'
+            )
+        else:
+            messages.success(
+                request,
+                'Post submitted successfully! Your post has been shared anonymously.'
+            )
 
         return redirect('dashboard')
 
