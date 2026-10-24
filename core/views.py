@@ -453,6 +453,7 @@ def category_posts(request, category_id):
     })
 
 
+
 def moderation_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -465,7 +466,7 @@ def moderation_dashboard(request):
             'You are not authorized to access this page.'
         )
 
-    # Handle moderation actions
+    # Handle existing report moderation actions
     if request.method == 'POST':
         report_id = request.POST.get('report_id')
         action = request.POST.get('action')
@@ -526,23 +527,13 @@ def moderation_dashboard(request):
         )
         return redirect('moderation_dashboard')
 
-    # Counts displayed on the dashboard placards
-    pending_count = Report.objects.filter(
-        status='pending'
-    ).count()
+    # Report counts
+    pending_count = Report.objects.filter(status='pending').count()
+    reviewed_count = Report.objects.filter(status='reviewed').count()
+    resolved_count = Report.objects.filter(status='resolved').count()
+    dismissed_count = Report.objects.filter(status='dismissed').count()
 
-    reviewed_count = Report.objects.filter(
-        status='reviewed'
-    ).count()
-
-    resolved_count = Report.objects.filter(
-        status='resolved'
-    ).count()
-
-    dismissed_count = Report.objects.filter(
-        status='dismissed'
-    ).count()
-
+    # Removed content
     removed_posts = Post.objects.filter(
         status='removed'
     ).select_related(
@@ -557,7 +548,15 @@ def moderation_dashboard(request):
 
     removed_count = removed_posts.count() + removed_replies.count()
 
-    # Overview is the default page: show placards only
+    # AI-flagged posts awaiting moderator review
+    ai_flagged_posts = Post.objects.filter(
+        status='flagged'
+    ).select_related(
+        'author', 'category'
+    ).order_by('-created_at')
+
+    ai_flagged_count = ai_flagged_posts.count()
+
     selected_filter = request.GET.get('status', 'overview')
 
     valid_filters = [
@@ -567,11 +566,13 @@ def moderation_dashboard(request):
         'resolved',
         'dismissed',
         'removed',
+        'ai_flagged',
     ]
 
     if selected_filter not in valid_filters:
         selected_filter = 'overview'
 
+    # Existing report list
     reports = Report.objects.select_related(
         'reporter',
         'post',
@@ -582,7 +583,6 @@ def moderation_dashboard(request):
         'reply__post',
     ).order_by('-created_at')
 
-    # Show only the category selected by the moderator
     if selected_filter in [
         'pending',
         'reviewed',
@@ -593,6 +593,10 @@ def moderation_dashboard(request):
     else:
         reports = reports.none()
 
+    # Only display AI-flagged posts on their dedicated filter
+    if selected_filter != 'ai_flagged':
+        ai_flagged_posts = Post.objects.none()
+
     context = {
         'reports': reports,
         'pending_count': pending_count,
@@ -602,6 +606,8 @@ def moderation_dashboard(request):
         'removed_count': removed_count,
         'removed_posts': removed_posts,
         'removed_replies': removed_replies,
+        'ai_flagged_posts': ai_flagged_posts,
+        'ai_flagged_count': ai_flagged_count,
         'selected_filter': selected_filter,
     }
 

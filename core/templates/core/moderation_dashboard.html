@@ -60,6 +60,15 @@
             <small>View resolved reports</small>
         </a>
 
+        
+<a class="moderation-stat moderation-stat-link {% if selected_filter == 'ai_flagged' %}stat-active{% endif %}"
+   href="{% url 'moderation_dashboard' %}?status=ai_flagged">
+    <span>AI-Flagged Posts</span>
+    <strong>{{ ai_flagged_count }}</strong>
+    <small>Review posts flagged by the toxicity model</small>
+</a>
+
+
         <a class="moderation-stat moderation-stat-link {% if selected_filter == 'dismissed' %}stat-active{% endif %}"
            href="{% url 'moderation_dashboard' %}?status=dismissed">
             <span>Dismissed</span>
@@ -75,6 +84,47 @@
         </a>
 
     </section>
+
+    
+{% if selected_filter == 'ai_flagged' %}
+    <section class="moderation-reports">
+        <div class="moderation-section-heading">
+            <div>
+                <h2>AI-Flagged Posts</h2>
+                <p>These posts were flagged by the toxicity model and require human review.</p>
+            </div>
+        </div>
+
+        {% for post in ai_flagged_posts %}
+            <article class="moderation-report">
+                <div class="report-heading">
+                    <div>
+                        <span class="report-type">AI-flagged post</span>
+                        <span class="report-status">Awaiting review</span>
+                    </div>
+                    <span class="report-date">
+                        {{ post.created_at|date:"M d, Y · H:i" }}
+                    </span>
+                </div>
+
+                <div class="report-details">
+                    <p><strong>Category:</strong> {{ post.category.name }}</p>
+                    <div class="reported-content">
+                        <strong>{{ post.title }}</strong>
+                        <p>{{ post.content }}</p>
+                    </div>
+                </div>
+            </article>
+        {% empty %}
+            <div class="moderation-empty">
+                <h3>No AI-flagged posts</h3>
+                <p>Posts flagged by the toxicity model will appear here.</p>
+            </div>
+        {% endfor %}
+    </section>
+
+{% elif selected_filter == 'removed' %}
+
 
     {% if selected_filter == 'removed' %}
 
