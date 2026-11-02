@@ -1,0 +1,127 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+{% block content %}
+<div class="moderation-detail-page">
+
+    <a href="{% url 'moderation_dashboard' %}?status=pending"
+       class="back-link">
+        Back to User Reports
+    </a>
+
+    <div class="report-detail-card">
+
+        <div class="report-detail-header">
+            <div>
+                <p class="detail-label">REPORT DETAILS</p>
+                <h2>Report #{{ report.id }}</h2>
+                <p class="detail-date">
+                    Submitted {{ report.created_at|date:"d M Y, H:i" }}
+                </p>
+            </div>
+
+            <span class="report-status status-{{ report.status }}">
+                {{ report.get_status_display }}
+            </span>
+        </div>
+
+        <hr>
+
+        <div class="report-information">
+            <h3>Report Information</h3>
+
+            <p>
+                <strong>Reported by:</strong>
+                {{ report.reporter.username|default:"Anonymous user" }}
+            </p>
+
+            <p>
+                <strong>Reason:</strong>
+                {{ report.reason }}
+            </p>
+        </div>
+
+        <div class="reported-content">
+            <h3>Reported Content</h3>
+
+            {% if report.post %}
+                <p>
+                    <strong>Content type:</strong> Post
+                </p>
+
+                <p>
+                    <strong>Category:</strong>
+                    {{ report.post.category }}
+                </p>
+
+                <p>
+                    <strong>Title:</strong>
+                    {{ report.post.title }}
+                </p>
+
+                <div class="reported-message">
+                    {{ report.post.content|linebreaks }}
+                </div>
+
+            {% elif report.reply %}
+                <p>
+                    <strong>Content type:</strong> Reply
+                </p>
+
+                <p>
+                    <strong>Original post:</strong>
+                    {{ report.reply.post.title }}
+                </p>
+
+                <div class="reported-message">
+                    {{ report.reply.content|linebreaks }}
+                </div>
+
+            {% else %}
+                <p>The reported content is no longer available.</p>
+            {% endif %}
+        </div>
+
+        {% if report.status == 'pending' %}
+            <div class="moderator-actions">
+                <h3>Moderator Decision</h3>
+
+                <form method="POST"
+                      action="{% url 'moderation_dashboard' %}">
+                    {% csrf_token %}
+
+                    <input type="hidden"
+                           name="report_id"
+                           value="{{ report.id }}">
+
+                    <label for="notes">Moderator notes</label>
+
+                    <textarea
+                        name="notes"
+                        id="notes"
+                        rows="4"
+                        placeholder="Add notes about your decision (optional)..."
+                    ></textarea>
+
+                    <div class="detail-action-buttons">
+                        <button type="submit"
+                                name="action"
+                                value="remove"
+                                class="remove-button">
+                            Remove Content
+                        </button>
+
+                        <button type="submit"
+                                name="action"
+                                value="dismiss"
+                                class="dismiss-button">
+                            Dismiss Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

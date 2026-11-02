@@ -1,373 +1,407 @@
-
 {% load static %}
+<link rel="stylesheet" href="{% static 'core/css/style.css' %}">
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moderation Dashboard - SafeSpace</title>
-    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
-</head>
+{% block content %}
 
-<body>
-    <nav class="navbar">
-        <div class="logo">SafeSpace</div>
+<div class="moderation-layout">
 
-        <div class="nav-links">
-           
+    <!-- SIDEBAR -->
+    <aside class="moderation-sidebar">
+
+        <div class="sidebar-brand">
+            <h2>SafeSpace</h2>
+            <p>Moderation Panel</p>
+        </div>
+
+        <nav class="moderation-navigation">
+
+            <a href="{% url 'moderation_dashboard' %}"
+               class="{% if selected_filter == 'overview' %}active{% endif %}">
+                Overview
+            </a>
+
+            <a href="{% url 'moderation_dashboard' %}?status=pending"
+               class="{% if selected_filter == 'pending' %}active{% endif %}">
+                User Reports
+                <span>{{ pending_count }}</span>
+            </a>
+
+            <a href="{% url 'moderation_dashboard' %}?status=ai_flagged"
+               class="{% if selected_filter == 'ai_flagged' %}active{% endif %}">
+                AI-Flagged Posts
+                <span>{{ ai_flagged_count }}</span>
+            </a>
+
+            <a href="{% url 'moderation_dashboard' %}?status=removed"
+               class="{% if selected_filter == 'removed' %}active{% endif %}">
+                Removed Content
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
             <a href="{% url 'logout' %}">Logout</a>
         </div>
-    </nav>
 
-    <main class="container moderation-container">
+    </aside>
 
-        <header class="page-header">
-            <h1>Moderation Dashboard</h1>
-            <p>Review reports and help keep SafeSpace supportive and safe.</p>
+
+    <!-- MAIN CONTENT -->
+    <main class="moderation-main">
+
+        <header class="moderation-header">
+            <div>
+                <p class="header-label">SAFESPACE MODERATION</p>
+
+                {% if selected_filter == 'overview' %}
+                    <h1>Overview</h1>
+                {% elif selected_filter == 'pending' %}
+                    <h1>User Reports</h1>
+                {% elif selected_filter == 'ai_flagged' %}
+                    <h1>AI-Flagged Posts</h1>
+                {% elif selected_filter == 'removed' %}
+                    <h1>Removed Content</h1>
+                {% else %}
+                    <h1>Moderation</h1>
+                {% endif %}
+            </div>
         </header>
 
+
+        <!-- MESSAGES -->
         {% if messages %}
-            <div class="messages">
+            <div class="moderation-messages">
                 {% for message in messages %}
-                    <div class="message {{ message.tags }}">
+                    <div class="moderation-message {{ message.tags }}">
                         {{ message }}
                     </div>
                 {% endfor %}
             </div>
         {% endif %}
 
-        <!-- Dashboard placards -->
-        <section class="moderation-stats">
 
-            <a class="moderation-stat moderation-stat-link {% if selected_filter == 'pending' %}stat-active{% endif %}"
-               href="{% url 'moderation_dashboard' %}?status=pending">
-                <span>Awaiting review</span>
-                <strong>{{ pending_count }}</strong>
-                <small>View pending reports</small>
-            </a>
+        <!-- OVERVIEW -->
+        {% if selected_filter == 'overview' %}
 
-        
+            <section class="moderation-welcome">
+                <h2>Welcome, Moderator</h2>
 
-            <a class="moderation-stat moderation-stat-link {% if selected_filter == 'resolved' %}stat-active{% endif %}"
-               href="{% url 'moderation_dashboard' %}?status=resolved">
-                <span>Resolved</span>
-                <strong>{{ resolved_count }}</strong>
-                <small>View resolved reports</small>
-            </a>
+            </section>
 
-            <a class="moderation-stat moderation-stat-link {% if selected_filter == 'dismissed' %}stat-active{% endif %}"
-               href="{% url 'moderation_dashboard' %}?status=dismissed">
-                <span>Dismissed</span>
-                <strong>{{ dismissed_count }}</strong>
-                <small>View dismissed reports</small>
-            </a>
 
-            <a class="moderation-stat moderation-stat-link {% if selected_filter == 'removed' %}stat-active{% endif %}"
-               href="{% url 'moderation_dashboard' %}?status=removed">
-                <span>Removed content</span>
-                <strong>{{ removed_count }}</strong>
-                <small>View removed posts and replies</small>
-            </a>
+            <section class="moderation-stats">
 
-            <a class="moderation-stat moderation-stat-link {% if selected_filter == 'ai_flagged' %}stat-active{% endif %}"
-               href="{% url 'moderation_dashboard' %}?status=ai_flagged">
-                <span>AI-Flagged Posts</span>
-                <strong>{{ ai_flagged_count }}</strong>
-                <small>Review posts flagged by the toxicity model</small>
-            </a>
-
-        </section>
-
-        <!-- AI-flagged posts -->
-        {% if selected_filter == 'ai_flagged' %}
-
-            <section class="moderation-reports">
-                <div class="moderation-section-heading">
-                    <div>
-                        <h2>AI-Flagged Posts</h2>
-                        <p>Posts identified by the toxicity model for human review.</p>
-                    </div>
+                <div class="stat-card">
+                    <p>Awaiting Review</p>
+                    <h2>{{ pending_count }}</h2>
+                    <span>User-submitted reports</span>
                 </div>
 
-                {% for post in ai_flagged_posts %}
-                    <article class="moderation-report">
+                <div class="stat-card">
+                    <p>AI-Flagged Posts</p>
+                    <h2>{{ ai_flagged_count }}</h2>
+                    <span>Require human review</span>
+                </div>
 
-                        <div class="report-heading">
-                            <div>
-                                <span class="report-type">AI-flagged post</span>
-                                <span class="report-status">Awaiting review</span>
+                <div class="stat-card">
+                    <p>Resolved Reports</p>
+                    <h2>{{ resolved_count }}</h2>
+                    <span>Content removed</span>
+                </div>
+
+                <div class="stat-card">
+                    <p>Removed Content</p>
+                    <h2>{{ removed_count }}</h2>
+                    <span>Posts and replies</span>
+                </div>
+
+            </section>
+
+
+            <section class="moderation-notice">
+                <h3>Moderation reminder</h3>
+
+                <p>
+                    AI flags are automated predictions, not final decisions.
+                    Every flagged post should be reviewed by a human moderator
+                    before action is taken.
+                </p>
+            </section>
+
+
+            <section class="moderation-quick-links">
+
+                <h2>Quick access</h2>
+
+                <div class="quick-link-grid">
+
+                    <a href="{% url 'moderation_dashboard' %}?status=pending"
+                       class="quick-link-card">
+                        <h3>Review User Reports</h3>
+                        <p>Examine content reported by students.</p>
+                    </a>
+
+                    <a href="{% url 'moderation_dashboard' %}?status=ai_flagged"
+                       class="quick-link-card">
+                        <h3>Review AI Flags</h3>
+                        <p>Check posts identified by the AI model.</p>
+                    </a>
+
+                    <a href="{% url 'moderation_dashboard' %}?status=removed"
+                       class="quick-link-card">
+                        <h3>View Removed Content</h3>
+                        <p>See previously removed posts and replies.</p>
+                    </a>
+
+                </div>
+
+            </section>
+
+
+        <!-- USER REPORTS -->
+        {% elif selected_filter == 'pending' %}
+
+            <section class="moderation-section">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Awaiting Review</h2>
+                        <p>Open a report to examine the reported content.</p>
+                    </div>
+
+                    <span class="section-count">{{ reports|length }}</span>
+                </div>
+
+
+                {% for report in reports %}
+
+                    <a href="{% url 'moderation_report_detail' report.pk %}"
+                       class="report-list-card">
+
+                        <div class="report-card-content">
+
+                            <div class="report-card-top">
+                                <span>Report #{{ report.id }}</span>
+
+                                <span class="report-status status-pending">
+                                    Pending
+                                </span>
                             </div>
 
-                            <span class="report-date">
-                                {{ post.created_at|date:"M d, Y · H:i" }}
+                            <h3>
+                                {% if report.post %}
+                                    {{ report.post.title }}
+                                {% elif report.reply %}
+                                    Reported reply
+                                {% else %}
+                                    Content unavailable
+                                {% endif %}
+                            </h3>
+
+                            <p>
+                                {{ report.reason|truncatechars:120 }}
+                            </p>
+
+                            <div class="report-card-meta">
+                                <span>
+                                    {{ report.created_at|date:"d M Y, H:i" }}
+                                </span>
+
+                                <span>
+                                    Open report →
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                {% empty %}
+
+                    <div class="empty-moderation-state">
+                        <h3>No pending reports</h3>
+                        <p>There are currently no reports awaiting review.</p>
+                    </div>
+
+                {% endfor %}
+
+            </section>
+
+
+        <!-- AI-FLAGGED POSTS -->
+        {% elif selected_filter == 'ai_flagged' %}
+
+            <section class="moderation-section">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>AI-Flagged Posts</h2>
+                        <p>Review posts identified by the toxicity detection model.</p>
+                    </div>
+
+                    <span class="section-count">
+                        {{ ai_flagged_count }}
+                    </span>
+                </div>
+
+
+                {% for post in ai_flagged_posts %}
+
+                    <div class="moderation-content-card">
+
+                        <div class="content-card-top">
+                            <span>AI Flagged</span>
+
+                            <span>
+                                {{ post.created_at|date:"d M Y, H:i" }}
                             </span>
                         </div>
 
-                        <div class="report-details">
-                            <p>
-                                <strong>Category:</strong>
-                                {{ post.category.name }}
-                            </p>
+                        <h3>{{ post.title }}</h3>
 
-                            <div class="reported-content">
-                                <strong>{{ post.title }}</strong>
-                                <p>{{ post.content }}</p>
-                            </div>
+                        <p class="content-category">
+                            Category: {{ post.category }}
+                        </p>
+
+                        <div class="moderation-post-content">
+                            {{ post.content|linebreaks }}
                         </div>
 
-                        <form method="POST" class="moderation-action-form">
+                        <form method="POST"
+                              action="{% url 'moderation_dashboard' %}"
+                              class="moderation-action-form">
+
                             {% csrf_token %}
 
-                            <input type="hidden" name="ai_post_id" value="{{ post.pk }}">
-
-                            <label for="ai-notes-{{ post.pk }}">
-                                Moderator notes (optional)
-                            </label>
+                            <input type="hidden"
+                                   name="ai_post_id"
+                                   value="{{ post.id }}">
 
                             <textarea
-                                id="ai-notes-{{ post.pk }}"
                                 name="notes"
                                 rows="2"
-                                placeholder="Explain your decision..."
+                                placeholder="Moderator notes (optional)..."
                             ></textarea>
 
-                          
-<div class="moderation-actions">
-    <button
-        type="submit"
-        name="action"
-        value="remove"
-        class="ai-remove-btn"
-    >
-        Remove Post
-    </button>
+                            <div class="moderation-buttons">
 
-    <button
-        type="submit"
-        name="action"
-        value="dismiss"
-        class="ai-dismiss-btn"
-    >
-        Dismiss AI Flag
-    </button>
-</div>
+                                <button type="submit"
+                                        name="action"
+                                        value="remove"
+                                        class="remove-button">
+                                    Remove Post
+                                </button>
+
+                                <button type="submit"
+                                        name="action"
+                                        value="dismiss"
+                                        class="dismiss-button">
+                                    Dismiss AI Flag
+                                </button>
+
+                            </div>
 
                         </form>
 
-                    </article>
-                {% empty %}
-                    <div class="moderation-empty">
-                        <h3>No AI-flagged posts</h3>
-                        <p>Posts flagged by the toxicity model will appear here.</p>
                     </div>
+
+                {% empty %}
+
+                    <div class="empty-moderation-state">
+                        <h3>No AI-flagged posts</h3>
+                        <p>There are currently no posts awaiting AI review.</p>
+                    </div>
+
                 {% endfor %}
+
             </section>
 
-        <!-- Removed content -->
+
+        <!-- REMOVED CONTENT -->
         {% elif selected_filter == 'removed' %}
 
-            <section class="moderation-reports">
-                <div class="moderation-section-heading">
+            <section class="moderation-section">
+
+                <div class="section-heading">
                     <div>
                         <h2>Removed Content</h2>
-                        <p>Posts and replies removed by moderators.</p>
+                        <p>Posts and replies removed during moderation.</p>
                     </div>
+
+                    <span class="section-count">{{ removed_count }}</span>
                 </div>
+
+
+                <h3 class="removed-subheading">Removed Posts</h3>
 
                 {% for post in removed_posts %}
-                    <article class="moderation-report">
-                        <div class="report-heading">
-                            <div>
-                                <span class="report-type">Removed post</span>
-                                <span class="report-status">Removed</span>
-                            </div>
 
-                            <span class="report-date">
-                                {{ post.created_at|date:"M d, Y · H:i" }}
+                    <div class="moderation-content-card removed-card">
+
+                        <div class="content-card-top">
+                            <span>Removed Post</span>
+
+                            <span>
+                                {{ post.created_at|date:"d M Y, H:i" }}
                             </span>
                         </div>
 
-                        <div class="report-details">
-                            <p>
-                                <strong>Category:</strong>
-                                {{ post.category.name }}
-                            </p>
+                        <h3>{{ post.title }}</h3>
 
-                            <div class="reported-content">
-                                <strong>{{ post.title }}</strong>
-                                <p>{{ post.content }}</p>
-                            </div>
-                        </div>
-                    </article>
+                        <p>{{ post.content|truncatechars:250 }}</p>
+
+                        <p class="content-category">
+                            Category: {{ post.category }}
+                        </p>
+
+                    </div>
+
+                {% empty %}
+
+                    <p class="empty-inline">
+                        No removed posts.
+                    </p>
+
                 {% endfor %}
+
+
+                <h3 class="removed-subheading">Removed Replies</h3>
 
                 {% for reply in removed_replies %}
-                    <article class="moderation-report">
-                        <div class="report-heading">
-                            <div>
-                                <span class="report-type">Removed reply</span>
-                                <span class="report-status">Removed</span>
-                            </div>
 
-                            <span class="report-date">
-                                {{ reply.created_at|date:"M d, Y · H:i" }}
+                    <div class="moderation-content-card removed-card">
+
+                        <div class="content-card-top">
+                            <span>Removed Reply</span>
+
+                            <span>
+                                {{ reply.created_at|date:"d M Y, H:i" }}
                             </span>
                         </div>
 
-                        <div class="report-details">
-                            <p>
-                                <strong>Reply to:</strong>
-                                {{ reply.post.title }}
-                            </p>
+                        <p>
+                            <strong>Original post:</strong>
+                            {{ reply.post.title }}
+                        </p>
 
-                            <div class="reported-content">
-                                <p>{{ reply.content }}</p>
-                            </div>
-                        </div>
-                    </article>
-                {% endfor %}
+                        <p>{{ reply.content|truncatechars:250 }}</p>
 
-                {% if not removed_posts and not removed_replies %}
-                    <div class="moderation-empty">
-                        <h3>No removed content</h3>
-                        <p>Content removed by moderators will appear here.</p>
-                    </div>
-                {% endif %}
-            </section>
-
-        <!-- User-submitted reports -->
-        {% else %}
-
-            <section class="moderation-reports">
-                <div class="moderation-section-heading">
-                    <div>
-                        <h2>
-                            {% if selected_filter == 'pending' %}
-                                Pending Reports
-                            {% elif selected_filter == 'reviewed' %}
-                                Reviewed / Escalated Reports
-                            {% elif selected_filter == 'resolved' %}
-                                Resolved Reports
-                            {% elif selected_filter == 'dismissed' %}
-                                Dismissed Reports
-                            {% else %}
-                                Reports Requiring Attention
-                            {% endif %}
-                        </h2>
-
-                        <p>Review reported content and its current status.</p>
                     </div>
 
-                    <a href="{% url 'moderation_dashboard' %}?status=pending">
-                        View pending reports
-                    </a>
-                </div>
-
-                {% for report in reports %}
-                    <article class="moderation-report">
-
-                        <div class="report-heading">
-                            <div>
-                                <span class="report-type">
-                                    {% if report.post_id %}
-                                        Reported post
-                                    {% elif report.reply_id %}
-                                        Reported reply
-                                    {% else %}
-                                        Report
-                                    {% endif %}
-                                </span>
-
-                                <span class="report-status">
-                                    {{ report.get_status_display }}
-                                </span>
-                            </div>
-
-                            <span class="report-date">
-                                {{ report.created_at|date:"M d, Y · H:i" }}
-                            </span>
-                        </div>
-
-                        <div class="report-details">
-                            <p>
-                                <strong>Reported by:</strong>
-                                {{ report.reporter.anonymousprofile.anonymous_name|default:"SafeSpace user" }}
-                            </p>
-
-                            <p>
-                                <strong>Reason:</strong>
-                                {{ report.reason }}
-                            </p>
-
-                            {% if report.post %}
-                                <p>
-                                    <strong>Category:</strong>
-                                    {{ report.post.category.name }}
-                                </p>
-
-                                <div class="reported-content">
-                                    <strong>{{ report.post.title }}</strong>
-                                    <p>{{ report.post.content }}</p>
-                                </div>
-
-                            {% elif report.reply %}
-                                <p>
-                                    <strong>Reply to:</strong>
-                                    {{ report.reply.post.title }}
-                                </p>
-
-                                <div class="reported-content">
-                                    <p>{{ report.reply.content }}</p>
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        {% if report.status == 'pending' or report.status == 'reviewed' %}
-                            <form method="POST" class="moderation-action-form">
-                                {% csrf_token %}
-
-                                <input type="hidden" name="report_id" value="{{ report.pk }}">
-
-                                <label for="report-notes-{{ report.pk }}">
-                                    Moderator notes (optional)
-                                </label>
-
-                                <textarea
-                                    id="report-notes-{{ report.pk }}"
-                                    name="notes"
-                                    rows="2"
-                                    placeholder="Add a reason for your decision..."
-                                ></textarea>
-
-                                <div class="moderation-actions">
-                                    <button type="submit" name="action" value="remove">
-                                        Remove content
-                                    </button>
-
-                                    <button type="submit" name="action" value="dismiss">
-                                        Dismiss report
-                                    </button>
-
-                                
-                                </div>
-                            </form>
-                        {% endif %}
-
-                    </article>
                 {% empty %}
-                    <div class="moderation-empty">
-                        <h3>No reports in this section</h3>
-                        <p>Reports matching this status will appear here.</p>
-                    </div>
+
+                    <p class="empty-inline">
+                        No removed replies.
+                    </p>
+
                 {% endfor %}
+
             </section>
 
         {% endif %}
 
-        
-
     </main>
-</body>
-</html>
 
+</div>
+
+{% endblock %}

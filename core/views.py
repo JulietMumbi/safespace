@@ -471,7 +471,7 @@ def moderation_dashboard(request):
         action = request.POST.get('action')
         notes = request.POST.get('notes', '').strip()
 
-        # Actions for AI-flagged posts
+        # AI-flagged posts
         ai_post_id = request.POST.get('ai_post_id')
 
         if ai_post_id:
@@ -485,43 +485,32 @@ def moderation_dashboard(request):
                     request,
                     'AI-flagged post not found or already reviewed.'
                 )
-                return redirect(
-                    'moderation_dashboard'
-                ) + '?status=ai_flagged'
+                return redirect('/moderation-dashboard/?status=ai_flagged')
 
             if action not in ['remove', 'dismiss']:
                 messages.error(request, 'Invalid moderation action.')
-                return redirect(
-                    'moderation_dashboard'
-                ) + '?status=ai_flagged'
+                return redirect('/moderation-dashboard/?status=ai_flagged')
 
             if action == 'remove':
                 post.status = 'removed'
-                post.save(update_fields=['status'])
-                action_type = 'remove'
                 success_message = 'AI-flagged post removed successfully.'
-
             else:
                 post.status = 'active'
-                post.save(update_fields=['status'])
-                action_type = 'dismiss'
                 success_message = 'AI flag dismissed. The post is now active.'
+
+            post.save(update_fields=['status'])
 
             ModerationAction.objects.create(
                 moderator=request.user,
                 post=post,
-                action_type=action_type,
-                reason=notes or f'AI-flagged post {action_type}d by moderator.',
+                action_type=action,
+                reason=notes or f'AI-flagged post {action}d by moderator.',
             )
 
             messages.success(request, success_message)
+            return redirect('/moderation-dashboard/?status=ai_flagged')
 
-            from django.http import HttpResponseRedirect
-            return HttpResponseRedirect(
-                '/moderation-dashboard/?status=ai_flagged'
-            )
-
-        # Existing user-reported content actions
+        # User-reported content
         report_id = request.POST.get('report_id')
 
         report = Report.objects.filter(
@@ -532,16 +521,22 @@ def moderation_dashboard(request):
             messages.error(request, 'Report not found.')
             return redirect('moderation_dashboard')
 
-        if report.status not in ['pending', 'reviewed']:
+        if report.status != 'pending':
             messages.error(
                 request,
-                'This report has already been resolved.'
+                'This report has already been reviewed.'
             )
-            return redirect('moderation_dashboard')
+            return redirect(
+                'moderation_report_detail',
+                report_id=report.pk
+            )
 
-        if action not in ['remove', 'dismiss', 'escalate']:
+        if action not in ['remove', 'dismiss']:
             messages.error(request, 'Invalid moderation action.')
-            return redirect('moderation_dashboard')
+            return redirect(
+                'moderation_report_detail',
+                report_id=report.pk
+            )
 
         if action == 'remove':
             target = report.post if report.post_id else report.reply
@@ -551,7 +546,10 @@ def moderation_dashboard(request):
                     request,
                     'The reported content is no longer available.'
                 )
-                return redirect('moderation_dashboard')
+                return redirect(
+                    'moderation_report_detail',
+                    report_id=report.pk
+                )
 
             target.status = 'removed'
             target.save(update_fields=['status'])
@@ -559,9 +557,6 @@ def moderation_dashboard(request):
 
         elif action == 'dismiss':
             report.status = 'dismissed'
-
-        elif action == 'escalate':
-            report.status = 'reviewed'
 
         report.save(update_fields=['status'])
 
@@ -577,11 +572,11 @@ def moderation_dashboard(request):
             request,
             'Moderation action completed successfully.'
         )
+
         return redirect('moderation_dashboard')
 
     # Report counts
     pending_count = Report.objects.filter(status='pending').count()
-    reviewed_count = Report.objects.filter(status='reviewed').count()
     resolved_count = Report.objects.filter(status='resolved').count()
     dismissed_count = Report.objects.filter(status='dismissed').count()
 
@@ -614,7 +609,6 @@ def moderation_dashboard(request):
     valid_filters = [
         'overview',
         'pending',
-        'reviewed',
         'resolved',
         'dismissed',
         'removed',
@@ -634,12 +628,7 @@ def moderation_dashboard(request):
         'reply__post',
     ).order_by('-created_at')
 
-    if selected_filter in [
-        'pending',
-        'reviewed',
-        'resolved',
-        'dismissed',
-    ]:
+    if selected_filter in ['pending', 'resolved', 'dismissed']:
         reports = reports.filter(status=selected_filter)
     else:
         reports = reports.none()
@@ -653,7 +642,6 @@ def moderation_dashboard(request):
     context = {
         'reports': reports,
         'pending_count': pending_count,
-        'reviewed_count': reviewed_count,
         'resolved_count': resolved_count,
         'dismissed_count': dismissed_count,
         'removed_count': removed_count,
@@ -670,3 +658,38 @@ def moderation_dashboard(request):
         context
     )
 
+
+def moderation_report_detail(request, report_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if not (
+        request.user.is_superuser
+        or request.user.role in ['admin', 'moderator']
+    ):
+        return HttpResponseForbidden(
+            'You are not authorized to access this page.'
+        )
+
+    report = get_object_or_404(
+        Report.objects.select_related(
+            'reporter',
+            'post',
+            'reply',
+            'post__category',
+            'post__author',
+            'reply__author',
+            'reply__post',
+        ),
+        pk=report_id
+    )
+
+    context = {
+        'report': report,
+    }
+
+    return render(
+        request,
+        'core/moderation_report_detail.html',
+        context
+    )
