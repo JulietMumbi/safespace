@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -473,6 +473,8 @@ def moderation_dashboard(request):
 
         # AI-flagged posts
         ai_post_id = request.POST.get('ai_post_id')
+        print("AI POST ID:", ai_post_id)
+        print("POST DATA:", request.POST)
 
         if ai_post_id:
             post = Post.objects.filter(
