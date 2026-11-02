@@ -1,3 +1,4 @@
+
 {% load static %}
 <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
 
@@ -32,6 +33,12 @@
                 <span>{{ ai_flagged_count }}</span>
             </a>
 
+            <a href="{% url 'moderation_dashboard' %}?status=resolved"
+               class="{% if selected_filter == 'resolved' %}active{% endif %}">
+                Resolved Reports
+                <span>{{ resolved_count }}</span>
+            </a>
+
             <a href="{% url 'moderation_dashboard' %}?status=removed"
                class="{% if selected_filter == 'removed' %}active{% endif %}">
                 Removed Content
@@ -55,12 +62,19 @@
 
                 {% if selected_filter == 'overview' %}
                     <h1>Overview</h1>
+
                 {% elif selected_filter == 'pending' %}
                     <h1>User Reports</h1>
+
+                {% elif selected_filter == 'resolved' %}
+                    <h1>Resolved Reports</h1>
+
                 {% elif selected_filter == 'ai_flagged' %}
                     <h1>AI-Flagged Posts</h1>
+
                 {% elif selected_filter == 'removed' %}
                     <h1>Removed Content</h1>
+
                 {% else %}
                     <h1>Moderation</h1>
                 {% endif %}
@@ -85,39 +99,51 @@
 
             <section class="moderation-welcome">
                 <h2>Welcome, Moderator</h2>
-
+                <p>
+                    Review reported content, monitor AI-flagged posts
+                    and help maintain a safe and respectful community.
+                </p>
             </section>
 
 
+            <!-- STATISTICS -->
             <section class="moderation-stats">
 
-                <div class="stat-card">
+                <a href="{% url 'moderation_dashboard' %}?status=pending"
+                   class="stat-card clickable-stat-card">
                     <p>Awaiting Review</p>
                     <h2>{{ pending_count }}</h2>
-                    <span>User-submitted reports</span>
-                </div>
+                    <span>View pending reports</span>
+                </a>
 
-                <div class="stat-card">
+
+                <a href="{% url 'moderation_dashboard' %}?status=ai_flagged"
+                   class="stat-card clickable-stat-card">
                     <p>AI-Flagged Posts</p>
                     <h2>{{ ai_flagged_count }}</h2>
                     <span>Require human review</span>
-                </div>
+                </a>
 
-                <div class="stat-card">
+
+                <a href="{% url 'moderation_dashboard' %}?status=resolved"
+                   class="stat-card clickable-stat-card">
                     <p>Resolved Reports</p>
                     <h2>{{ resolved_count }}</h2>
-                    <span>Content removed</span>
-                </div>
+                    <span>View resolved reports</span>
+                </a>
 
-                <div class="stat-card">
+
+                <a href="{% url 'moderation_dashboard' %}?status=removed"
+                   class="stat-card clickable-stat-card">
                     <p>Removed Content</p>
                     <h2>{{ removed_count }}</h2>
-                    <span>Posts and replies</span>
-                </div>
+                    <span>View removed content</span>
+                </a>
 
             </section>
 
 
+            <!-- MODERATION NOTICE -->
             <section class="moderation-notice">
                 <h3>Moderation reminder</h3>
 
@@ -129,6 +155,7 @@
             </section>
 
 
+            <!-- QUICK ACCESS -->
             <section class="moderation-quick-links">
 
                 <h2>Quick access</h2>
@@ -141,11 +168,20 @@
                         <p>Examine content reported by students.</p>
                     </a>
 
+
                     <a href="{% url 'moderation_dashboard' %}?status=ai_flagged"
                        class="quick-link-card">
                         <h3>Review AI Flags</h3>
                         <p>Check posts identified by the AI model.</p>
                     </a>
+
+
+                    <a href="{% url 'moderation_dashboard' %}?status=resolved"
+                       class="quick-link-card">
+                        <h3>View Resolved Reports</h3>
+                        <p>Review reports that moderators have handled.</p>
+                    </a>
+
 
                     <a href="{% url 'moderation_dashboard' %}?status=removed"
                        class="quick-link-card">
@@ -158,7 +194,7 @@
             </section>
 
 
-        <!-- USER REPORTS -->
+        <!-- PENDING USER REPORTS -->
         {% elif selected_filter == 'pending' %}
 
             <section class="moderation-section">
@@ -169,7 +205,9 @@
                         <p>Open a report to examine the reported content.</p>
                     </div>
 
-                    <span class="section-count">{{ reports|length }}</span>
+                    <span class="section-count">
+                        {{ reports|length }}
+                    </span>
                 </div>
 
 
@@ -207,9 +245,7 @@
                                     {{ report.created_at|date:"d M Y, H:i" }}
                                 </span>
 
-                                <span>
-                                    Open report →
-                                </span>
+                                <span>Open report →</span>
                             </div>
 
                         </div>
@@ -228,6 +264,79 @@
             </section>
 
 
+        <!-- RESOLVED REPORTS -->
+        {% elif selected_filter == 'resolved' %}
+
+            <section class="moderation-section">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Resolved Reports</h2>
+                        <p>
+                            Reports that moderators have handled by
+                            removing the reported content.
+                        </p>
+                    </div>
+
+                    <span class="section-count">
+                        {{ reports|length }}
+                    </span>
+                </div>
+
+
+                {% for report in reports %}
+
+                    <a href="{% url 'moderation_report_detail' report.pk %}"
+                       class="report-list-card">
+
+                        <div class="report-card-content">
+
+                            <div class="report-card-top">
+                                <span>Report #{{ report.id }}</span>
+
+                                <span class="report-status status-resolved">
+                                    Resolved
+                                </span>
+                            </div>
+
+                            <h3>
+                                {% if report.post %}
+                                    {{ report.post.title }}
+                                {% elif report.reply %}
+                                    Reported reply
+                                {% else %}
+                                    Content unavailable
+                                {% endif %}
+                            </h3>
+
+                            <p>
+                                {{ report.reason|truncatechars:120 }}
+                            </p>
+
+                            <div class="report-card-meta">
+                                <span>
+                                    {{ report.created_at|date:"d M Y, H:i" }}
+                                </span>
+
+                                <span>View report →</span>
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                {% empty %}
+
+                    <div class="empty-moderation-state">
+                        <h3>No resolved reports yet</h3>
+                        <p>Resolved reports will appear here.</p>
+                    </div>
+
+                {% endfor %}
+
+            </section>
+
+
         <!-- AI-FLAGGED POSTS -->
         {% elif selected_filter == 'ai_flagged' %}
 
@@ -236,7 +345,10 @@
                 <div class="section-heading">
                     <div>
                         <h2>AI-Flagged Posts</h2>
-                        <p>Review posts identified by the toxicity detection model.</p>
+                        <p>
+                            Review posts identified by the toxicity
+                            detection model.
+                        </p>
                     </div>
 
                     <span class="section-count">
@@ -325,13 +437,18 @@
                 <div class="section-heading">
                     <div>
                         <h2>Removed Content</h2>
-                        <p>Posts and replies removed during moderation.</p>
+                        <p>
+                            Posts and replies removed during moderation.
+                        </p>
                     </div>
 
-                    <span class="section-count">{{ removed_count }}</span>
+                    <span class="section-count">
+                        {{ removed_count }}
+                    </span>
                 </div>
 
 
+                <!-- REMOVED POSTS -->
                 <h3 class="removed-subheading">Removed Posts</h3>
 
                 {% for post in removed_posts %}
@@ -365,6 +482,7 @@
                 {% endfor %}
 
 
+                <!-- REMOVED REPLIES -->
                 <h3 class="removed-subheading">Removed Replies</h3>
 
                 {% for reply in removed_replies %}
@@ -384,7 +502,9 @@
                             {{ reply.post.title }}
                         </p>
 
-                        <p>{{ reply.content|truncatechars:250 }}</p>
+                        <p>
+                            {{ reply.content|truncatechars:250 }}
+                        </p>
 
                     </div>
 

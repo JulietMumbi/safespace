@@ -1678,4 +1678,25 @@ input {
     }
 }
 
+/* Clickable statistics cards */
+
+.clickable-stat-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.clickable-stat-card:hover {
+    transform: translateY(-3px);
+    border-color: #78977A;
+}
+
+/* Resolved report status */
+
+.status-resolved {
+    background: #DCE8D9;
+    color: #263F35;
+}
 
