@@ -32,4 +32,16 @@ urlpatterns = [
         views.category_posts,
         name='category_posts'
     ),
+    
+    path(
+    'admin-dashboard/',
+    views.admin_dashboard,
+    name='admin_dashboard'
+),
+
+path(
+    'admin-dashboard/restore/<int:post_id>/',
+    views.restore_archived_post,
+    name='restore_archived_post'
+),
 ]

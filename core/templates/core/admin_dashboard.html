@@ -1,0 +1,196 @@
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+<div class="admin-dashboard">
+
+    <aside class="admin-sidebar">
+
+        <div class="admin-brand">
+            <h2>SafeSpace</h2>
+            <p>Administration</p>
+        </div>
+
+        <nav>
+            <a href="{% url 'admin_dashboard' %}" class="admin-nav-active">
+                Archive Management
+            </a>
+
+            <a href="{% url 'moderation_dashboard' %}">
+                Moderation Dashboard
+            </a>
+
+            <a href="{% url 'logout' %}">
+                Logout
+            </a>
+        </nav>
+
+    </aside>
+
+
+    <main class="admin-main">
+
+        <header class="admin-header">
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p>Manage SafeSpace content retention and archives.</p>
+            </div>
+        </header>
+
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="moderation-message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+
+        <section class="admin-stats">
+
+            <div class="admin-stat-card">
+                <span>Active Posts</span>
+                <h2>{{ active_posts_count }}</h2>
+            </div>
+
+            <div class="admin-stat-card">
+                <span>Due for Archiving</span>
+                <h2>{{ posts_due_count }}</h2>
+            </div>
+
+            <div class="admin-stat-card">
+                <span>Archived Posts</span>
+                <h2>{{ archived_count }}</h2>
+            </div>
+
+        </section>
+
+
+        <section class="admin-section">
+
+            <div class="admin-section-heading">
+                <div>
+                    <h2>Retention Policy</h2>
+                    <p>
+                        Active posts are automatically archived
+                        after five calendar months.
+                    </p>
+                </div>
+
+                <span class="admin-policy-label">
+                    5 Months
+                </span>
+            </div>
+
+        </section>
+
+
+        <section class="admin-section">
+
+            <div class="admin-section-heading">
+                <div>
+                    <h2>Archived Posts</h2>
+                    <p>
+                        These posts are hidden from active student discussions.
+                    </p>
+                </div>
+
+            </div>
+
+
+            {% for post in archived_posts %}
+
+                <div class="admin-archive-card">
+
+                    <div>
+                        <h3>{{ post.title }}</h3>
+
+                        <p>
+                            Category: {{ post.category }}
+                        </p>
+
+                        <p>
+                            Published:
+                            {{ post.created_at|date:"d M Y" }}
+                        </p>
+
+                        <p>
+                            Archived:
+                            {{ post.archived_at|date:"d M Y, H:i" }}
+                        </p>
+                    </div>
+
+                    <form method="POST"
+                          action="{% url 'restore_archived_post' post.pk %}">
+
+                        {% csrf_token %}
+
+                        <button type="submit"
+                                class="admin-restore-button">
+                            Restore Post
+                        </button>
+
+                    </form>
+
+                </div>
+
+            {% empty %}
+
+                <div class="empty-moderation-state">
+                    <h3>No archived posts</h3>
+                    <p>
+                        Posts archived by the system will appear here.
+                    </p>
+                </div>
+
+            {% endfor %}
+
+        </section>
+
+
+        <section class="admin-section">
+
+            <div class="admin-section-heading">
+                <div>
+                    <h2>Archive History</h2>
+                    <p>Recent archive and restoration activities.</p>
+                </div>
+            </div>
+
+            {% for log in archive_history %}
+
+                <div class="admin-history-row">
+
+                    <div>
+                        <strong>{{ log.post.title }}</strong>
+
+                        <p>
+                            {{ log.get_action_display }}
+                            · {{ log.created_at|date:"d M Y, H:i" }}
+                        </p>
+                    </div>
+
+                    <span>
+                        {% if log.performed_by %}
+                            {{ log.performed_by.email }}
+                        {% else %}
+                            Automatic system action
+                        {% endif %}
+                    </span>
+
+                </div>
+
+            {% empty %}
+
+                <div class="empty-moderation-state">
+                    <p>No archive history yet.</p>
+                </div>
+
+            {% endfor %}
+
+        </section>
+
+    </main>
+
+</div>

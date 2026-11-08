@@ -4,6 +4,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from core.toxicity import load_toxicity_model
 from django.urls import reverse
+from django.utils import timezone
+from .models import PostArchiveLog
+from .archive_utils import five_months_ago
 from django.db import transaction, IntegrityError
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponseForbidden, request
@@ -695,3 +698,98 @@ def moderation_report_detail(request, report_id):
         'core/moderation_report_detail.html',
         context
     )
+
+def admin_dashboard(request):
+
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if not (
+        request.user.is_superuser
+        or request.user.role == 'admin'
+    ):
+        return HttpResponseForbidden(
+            'You are not authorized to access this page.'
+        )
+
+    # Archived posts
+    archived_posts = Post.objects.filter(
+        status='archived'
+    ).select_related(
+        'author', 'category'
+    ).order_by('-archived_at')
+
+    # Posts eligible for archiving
+    cutoff_date = five_months_ago()
+
+    posts_due = Post.objects.filter(
+        status='active',
+        created_at__date__lte=cutoff_date
+    )
+
+    # Archive history
+    archive_history = PostArchiveLog.objects.select_related(
+        'post',
+        'performed_by'
+    ).order_by('-created_at')[:30]
+
+    context = {
+        'archived_posts': archived_posts,
+        'archived_count': archived_posts.count(),
+        'posts_due_count': posts_due.count(),
+        'active_posts_count': Post.objects.filter(
+            status='active'
+        ).count(),
+        'archive_history': archive_history,
+    }
+
+    return render(
+        request,
+        'core/admin_dashboard.html',
+        context
+    )
+
+
+def restore_archived_post(request, post_id):
+
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if not (
+        request.user.is_superuser
+        or request.user.role == 'admin'
+    ):
+        return HttpResponseForbidden(
+            'You are not authorized to access this page.'
+        )
+
+    if request.method != 'POST':
+        return HttpResponseForbidden(
+            'Invalid request method.'
+        )
+
+    post = get_object_or_404(
+        Post,
+        pk=post_id,
+        status='archived'
+    )
+
+    post.status = 'active'
+    post.archived_at = None
+
+    post.save(
+        update_fields=['status', 'archived_at']
+    )
+
+    PostArchiveLog.objects.create(
+        post=post,
+        action='restored',
+        performed_by=request.user
+    )
+
+    messages.success(
+        request,
+        'Post restored successfully.'
+    )
+
+    return redirect('admin_dashboard')
