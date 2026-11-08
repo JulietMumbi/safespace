@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeSpace | A Space to Be Heard</title>
-
     <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
 </head>
 
@@ -16,26 +15,18 @@
         <a href="{% url 'home' %}" class="home-logo">SafeSpace</a>
 
         <div class="home-nav-links">
-            <a href="#about">About</a>
-            <a href="#how-it-works">How It Works</a>
             <a href="{% url 'login' %}">Log In</a>
-            <a href="{% url 'signup' %}" class="home-nav-button">
-                Sign Up
-            </a>
+            <a href="{% url 'signup' %}" class="home-nav-button">Sign Up</a>
         </div>
     </nav>
 
     <main>
-
-        <!-- HERO SECTION -->
         <section class="home-hero">
 
             <div class="home-hero-content">
                 <span class="home-eyebrow">A COMMUNITY THAT LISTENS</span>
 
-                <h1>
-                    You don't have to go through it alone.
-                </h1>
+                <h1>You don't have to go through it alone.</h1>
 
                 <p>
                     University life comes with experiences, challenges
@@ -44,15 +35,9 @@
                     connect with peers and find support.
                 </p>
 
-                <div class="home-hero-buttons">
-                    <a href="{% url 'signup' %}" class="home-primary-button">
-                        Find Your Space
-                    </a>
-
-                    <a href="{% url 'login' %}" class="home-secondary-button">
-                        Log In
-                    </a>
-                </div>
+                <a href="{% url 'signup' %}" class="home-primary-button">
+                    Get Started
+                </a>
 
                 <p class="home-small-note">
                     Your identity stays private. Your voice matters.
@@ -62,93 +47,11 @@
             <div class="home-hero-image">
                 <img
                     src="{% static 'core/images/hero.jpg' %}"
-                    alt="People joining hands to symbolise unity and support"
-                >
+                    alt="People joining hands to symbolise unity and support">
             </div>
 
         </section>
-
-
-        <!-- ABOUT SECTION -->
-        <section class="home-about" id="about">
-
-            <span class="home-eyebrow">ABOUT SAFESPACE</span>
-
-            <h2>A space where every voice matters.</h2>
-
-            <p>
-                Sometimes, all we need is a place where we can express
-                ourselves without fear of judgement. SafeSpace brings
-                university students together through anonymous,
-                structured peer support.
-            </p>
-
-        </section>
-
-
-        <!-- HOW IT WORKS -->
-        <section class="home-how" id="how-it-works">
-
-            <div class="home-section-heading">
-                <span class="home-eyebrow">HOW IT WORKS</span>
-                <h2>Support starts with a conversation.</h2>
-                <p>
-                    A simple way to share, listen and support one another.
-                </p>
-            </div>
-
-            <div class="home-feature-grid">
-
-                <div class="home-feature-card">
-                    <div class="home-feature-number">01</div>
-                    <h3>Share anonymously</h3>
-                    <p>
-                        Express your thoughts and experiences without
-                        revealing your identity to other students.
-                    </p>
-                </div>
-
-                <div class="home-feature-card">
-                    <div class="home-feature-number">02</div>
-                    <h3>Connect with peers</h3>
-                    <p>
-                        Read experiences shared by fellow students
-                        who may understand what you are going through.
-                    </p>
-                </div>
-
-                <div class="home-feature-card">
-                    <div class="home-feature-number">03</div>
-                    <h3>Offer support</h3>
-                    <p>
-                        Respond to others, share encouragement and
-                        help create a supportive student community.
-                    </p>
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- CLOSING SECTION -->
-        <section class="home-cta">
-
-            <h2>You deserve a space to be heard.</h2>
-
-            <p>
-                Start a conversation. Share your experience.
-                Let someone know they are not alone.
-            </p>
-
-            <a href="{% url 'signup' %}" class="home-cta-button">
-                Join SafeSpace
-            </a>
-
-        </section>
-
     </main>
-
 
     <footer class="home-footer">
         <p>SafeSpace &copy; {% now "Y" %}. A space for student connection and support.</p>
