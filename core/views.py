@@ -158,6 +158,7 @@ def signup(request):
 
 
 
+
 def user_login(request):
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
@@ -179,8 +180,8 @@ def user_login(request):
             login(request, user)
 
             # Redirect users according to their roles
-            if user.role == 'admin':
-                return redirect('moderation_dashboard')
+            if user.is_superuser or user.role == 'admin':
+                return redirect('admin_dashboard')
 
             elif user.role == 'moderator':
                 return redirect('moderation_dashboard')
@@ -193,6 +194,7 @@ def user_login(request):
         })
 
     return render(request, 'core/login.html')
+
 
 
 
