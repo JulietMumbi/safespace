@@ -44,4 +44,12 @@ path(
     views.restore_archived_post,
     name='restore_archived_post'
 ),
+
+
+path('admin-active-posts/', views.admin_active_posts, name='admin_active_posts'),
+
+path('admin-posts-due/', views.admin_posts_due, name='admin_posts_due'),
+
+path('admin-archived-posts/', views.admin_archived_posts, name='admin_archived_posts'),
+
 ]

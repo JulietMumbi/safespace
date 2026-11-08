@@ -699,6 +699,8 @@ def moderation_report_detail(request, report_id):
         context
     )
 
+
+
 def admin_dashboard(request):
 
     if not request.user.is_authenticated:
@@ -712,34 +714,29 @@ def admin_dashboard(request):
             'You are not authorized to access this page.'
         )
 
-    # Archived posts
-    archived_posts = Post.objects.filter(
-        status='archived'
-    ).select_related(
-        'author', 'category'
-    ).order_by('-archived_at')
-
-    # Posts eligible for archiving
     cutoff_date = five_months_ago()
 
-    posts_due = Post.objects.filter(
-        status='active',
+    active_posts = Post.objects.filter(
+        status='active'
+    )
+
+    posts_due = active_posts.filter(
         created_at__date__lte=cutoff_date
     )
 
-    # Archive history
+    archived_posts = Post.objects.filter(
+        status='archived'
+    )
+
     archive_history = PostArchiveLog.objects.select_related(
         'post',
         'performed_by'
     ).order_by('-created_at')[:30]
 
     context = {
-        'archived_posts': archived_posts,
-        'archived_count': archived_posts.count(),
+        'active_posts_count': active_posts.count(),
         'posts_due_count': posts_due.count(),
-        'active_posts_count': Post.objects.filter(
-            status='active'
-        ).count(),
+        'archived_count': archived_posts.count(),
         'archive_history': archive_history,
     }
 
@@ -748,6 +745,106 @@ def admin_dashboard(request):
         'core/admin_dashboard.html',
         context
     )
+
+
+# ACTIVE POSTS PAGE
+def admin_active_posts(request):
+
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if not (
+        request.user.is_superuser
+        or request.user.role == 'admin'
+    ):
+        return HttpResponseForbidden(
+            'You are not authorized to access this page.'
+        )
+
+    posts = Post.objects.filter(
+        status='active'
+    ).select_related(
+        'author', 'category'
+    ).order_by('-created_at')
+
+    return render(
+        request,
+        'core/admin_post_list.html',
+        {
+            'posts': posts,
+            'page_title': 'Active Posts',
+            'page_description': 'All currently active student discussions.',
+            'show_restore': False,
+        }
+    )
+
+
+# POSTS DUE FOR ARCHIVING PAGE
+def admin_posts_due(request):
+
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if not (
+        request.user.is_superuser
+        or request.user.role == 'admin'
+    ):
+        return HttpResponseForbidden(
+            'You are not authorized to access this page.'
+        )
+
+    cutoff_date = five_months_ago()
+
+    posts = Post.objects.filter(
+        status='active',
+        created_at__date__lte=cutoff_date
+    ).select_related(
+        'author', 'category'
+    ).order_by('created_at')
+
+    return render(
+        request,
+        'core/admin_post_list.html',
+        {
+            'posts': posts,
+            'page_title': 'Posts Due for Archiving',
+            'page_description': 'Active posts that have reached the five-month retention period.',
+            'show_restore': False,
+        }
+    )
+
+
+# ARCHIVED POSTS PAGE
+def admin_archived_posts(request):
+
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if not (
+        request.user.is_superuser
+        or request.user.role == 'admin'
+    ):
+        return HttpResponseForbidden(
+            'You are not authorized to access this page.'
+        )
+
+    posts = Post.objects.filter(
+        status='archived'
+    ).select_related(
+        'author', 'category'
+    ).order_by('-archived_at')
+
+    return render(
+        request,
+        'core/admin_post_list.html',
+        {
+            'posts': posts,
+            'page_title': 'Archived Posts',
+            'page_description': 'Posts hidden from active student discussions.',
+            'show_restore': True,
+        }
+    )
+
 
 
 def restore_archived_post(request, post_id):

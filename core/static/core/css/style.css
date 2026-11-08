@@ -1918,3 +1918,47 @@ input {
         align-items: flex-start;
     }
 }
+
+
+.admin-stat-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.admin-section {
+    scroll-margin-top: 25px;
+}
+
+
+.admin-stat-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.admin-back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    text-decoration: none;
+    color: inherit;
+    font-weight: 600;
+}
+
+.admin-back-link:hover {
+    text-decoration: underline;
+}
