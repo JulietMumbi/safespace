@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from core.toxicity import load_toxicity_model
 from django.urls import reverse
+from .toxicity import load_toxicity_model, contains_disguised_abuse
 from django.utils import timezone
 from .models import PostArchiveLog
 from .archive_utils import five_months_ago
@@ -216,6 +217,7 @@ def dashboard(request):
     return render(request, 'core/dashboard.html')
 
 
+
 def create_post(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -251,13 +253,23 @@ def create_post(request):
         if category is None:
             return show_error('Please select a valid category.')
 
+        text_to_check = f"{title} {content}"
+
+        # Check for disguised abusive words.
+        disguised_abuse = contains_disguised_abuse(text_to_check)
+
         try:
+            # Run the existing AI model.
             model = load_toxicity_model()
-            prediction = int(model.predict([f"{title} {content}"])[0])
+            prediction = int(model.predict([text_to_check])[0])
+
         except Exception:
             return show_error(
                 'We could not check your post right now. Please try again later.'
             )
+
+        # Flag the post if either check detects a concern.
+        should_flag = disguised_abuse or prediction == 1
 
         anonymous_profile = request.user.anonymousprofile
 
@@ -266,10 +278,10 @@ def create_post(request):
             category=category,
             title=title,
             content=content,
-            status='flagged' if prediction == 1 else 'active'
+            status='flagged' if should_flag else 'active'
         )
 
-        if prediction == 1:
+        if should_flag:
             messages.info(
                 request,
                 'Your post was submitted for moderator review.'
@@ -286,6 +298,7 @@ def create_post(request):
         'categories': categories,
         'selected_category_id': selected_category_id
     })
+
 
 
 
