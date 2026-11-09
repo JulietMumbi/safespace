@@ -1,3 +1,4 @@
+
 {% load static %}
 
 <!DOCTYPE html>
@@ -25,7 +26,6 @@
 
     </nav>
 
-
     <main class="form-container">
 
         <h1>Share Something</h1>
@@ -35,19 +35,17 @@
             Your identity will remain anonymous.
         </p>
 
-
         {% if error %}
             <div class="error-message">
                 {{ error }}
             </div>
         {% endif %}
 
-
         <form method="POST">
 
             {% csrf_token %}
 
-
+            <!-- CATEGORY -->
             <div class="form-group">
 
                 <label for="category">Category</label>
@@ -58,22 +56,22 @@
 
                     {% for category in categories %}
 
-    <option
-        value="{{ category.category_id }}"
-        {% if selected_category_id == category.category_id|stringformat:"s" %}
-            selected
-        {% endif %}
-    >
-        {{ category.name }}
-    </option>
+                        <option
+                            value="{{ category.category_id }}"
+                            {% if selected_category_id == category.category_id|stringformat:"s" %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ category.name }}
+                        </option>
 
-{% endfor %}
+                    {% endfor %}
 
                 </select>
 
             </div>
 
-
+            <!-- TITLE -->
             <div class="form-group">
 
                 <label for="title">Title</label>
@@ -89,66 +87,71 @@
 
             </div>
 
-
+            <!-- POST CONTENT -->
             <div class="form-group">
 
                 <label for="content">What's on your mind?</label>
 
                 <textarea
-    id="content"
-    name="content"
-    rows="8"
-    maxlength="2000"
-    placeholder="Share what you're experiencing..."
-    required
-></textarea>
+                    id="content"
+                    name="content"
+                    rows="8"
+                    maxlength="2000"
+                    placeholder="Share your thoughts here..."
+                    required
+                ></textarea>
 
-<div class="character-counter">
-    <span id="character-count">0</span> / 2000 characters
-</div>
+                <div class="character-counter">
+                    <span id="character-count">0</span>
+                    / 2000 characters
+                </div>
 
             </div>
 
+            <!-- FORM BUTTONS -->
+            <div class="form-footer">
 
-            <button type="submit" class="btn btn-primary">
-                Share 
-            </button>
+                <a href="{% url 'dashboard' %}">
+                    ← Back to Dashboard
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    Share Post
+                </button>
+
+            </div>
 
         </form>
 
-
-        <div class="form-footer">
-
-            <a href="{% url 'dashboard' %}">
-                ← Back to Dashboard
-            </a>
-
-        </div>
-
     </main>
-<script>
-    const postContent = document.getElementById('content');
-    const characterCount = document.getElementById('character-count');
-    const counterContainer = document.querySelector('.character-counter');
 
-    function updateCharacterCount() {
-        const length = postContent.value.length;
+    <script>
 
-        characterCount.textContent = length;
+        const postContent = document.getElementById('content');
+        const characterCount = document.getElementById('character-count');
+        const counterContainer = document.querySelector('.character-counter');
 
-        counterContainer.classList.remove('near-limit', 'at-limit');
+        function updateCharacterCount() {
 
-        if (length >= 2000) {
-            counterContainer.classList.add('at-limit');
-        } else if (length >= 1800) {
-            counterContainer.classList.add('near-limit');
+            const length = postContent.value.length;
+
+            characterCount.textContent = length;
+
+            counterContainer.classList.remove('near-limit', 'at-limit');
+
+            if (length >= 2000) {
+                counterContainer.classList.add('at-limit');
+            } else if (length >= 1800) {
+                counterContainer.classList.add('near-limit');
+            }
+
         }
-    }
 
-    postContent.addEventListener('input', updateCharacterCount);
+        postContent.addEventListener('input', updateCharacterCount);
 
-    updateCharacterCount();
-</script>
+        updateCharacterCount();
+
+    </script>
+
 </body>
-
 </html>

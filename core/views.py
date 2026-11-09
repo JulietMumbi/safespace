@@ -1009,3 +1009,29 @@ def restore_archived_post(request, post_id):
     )
 
     return redirect('admin_dashboard')
+
+def delete_post(request, post_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if request.method != 'POST':
+        return redirect('dashboard')
+
+    post = get_object_or_404(
+        Post,
+        post_id=post_id,
+        author=request.user.anonymousprofile
+    )
+
+    category_id = post.category.category_id
+
+    post.delete()
+
+    messages.success(
+        request,
+        'Your post has been deleted successfully.'
+    )
+
+    return redirect(
+        reverse('category_posts', args=[category_id])
+    )

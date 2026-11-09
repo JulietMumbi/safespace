@@ -52,4 +52,11 @@ path('admin-posts-due/', views.admin_posts_due, name='admin_posts_due'),
 
 path('admin-archived-posts/', views.admin_archived_posts, name='admin_archived_posts'),
 
+path(
+    'delete-post/<int:post_id>/',
+    views.delete_post,
+    name='delete_post'
+),
+
 ]
+

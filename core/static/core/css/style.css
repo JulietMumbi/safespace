@@ -2353,3 +2353,35 @@ input {
         text-align: left;
     }
 }
+
+.delete-button {
+    color: #b45353;
+    border: 1px solid #b45353;
+    background: transparent;
+}
+
+.delete-button:hover {
+    background: #b45353;
+    color: white;
+}
+
+.form-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.cancel-button {
+    padding: 10px 18px;
+    border: 1px solid #b7b7b7;
+    border-radius: 6px;
+    background: transparent;
+    color: #555;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.cancel-button:hover {
+    background: #eeeeee;
+}

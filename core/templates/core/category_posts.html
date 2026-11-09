@@ -1,4 +1,4 @@
- 
+
 {% load static %}
 
 <!DOCTYPE html>
@@ -56,8 +56,9 @@
 
                     {% for post in posts %}
 
-                        <article class="post-card"
-                                 id="post-{{ post.post_id }}">
+                        <article class="post-card" id="post-{{ post.post_id }}">
+
+                            <!-- POST INFORMATION -->
 
                             <div class="post-meta">
                                 {{ post.author.anonymous_name }}
@@ -65,6 +66,8 @@
                             </div>
 
                             <h2>{{ post.title }}</h2>
+
+                            <!-- POST CONTENT -->
 
                             <div class="post-content-wrapper">
 
@@ -80,6 +83,8 @@
                                 </button>
 
                             </div>
+
+                            <!-- POST ACTIONS -->
 
                             <div class="post-actions">
 
@@ -97,6 +102,25 @@
                                     Report
                                 </button>
 
+                                {% if post.author == request.user.anonymousprofile %}
+
+                                    <form
+                                        method="POST"
+                                        action="{% url 'delete_post' post.post_id %}"
+                                        onsubmit="return confirm('Are you sure you want to permanently delete this post? This will also delete its replies.');">
+
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="post-action-button delete-button">
+                                            Delete
+                                        </button>
+
+                                    </form>
+
+                                {% endif %}
+
                             </div>
 
                             <!-- REPORT POST FORM -->
@@ -105,17 +129,9 @@
 
                                 {% csrf_token %}
 
-                                <input type="hidden"
-                                       name="action"
-                                       value="report">
-
-                                <input type="hidden"
-                                       name="target_type"
-                                       value="post">
-
-                                <input type="hidden"
-                                       name="target_id"
-                                       value="{{ post.post_id }}">
+                                <input type="hidden" name="action" value="report">
+                                <input type="hidden" name="target_type" value="post">
+                                <input type="hidden" name="target_id" value="{{ post.post_id }}">
 
                                 <label for="post-report-{{ post.post_id }}">
                                     Why are you reporting this post?
@@ -127,32 +143,33 @@
                                     required>
 
                                     <option value="">Select a reason</option>
-                                    <option value="Harassment or bullying">
-                                        Harassment or bullying
-                                    </option>
-                                    <option value="Hate speech">
-                                        Hate speech
-                                    </option>
-                                    <option value="Abuse or threats">
-                                        Abuse or threats
-                                    </option>
-                                    <option value="Self-harm or suicide concern">
-                                        Self-harm or suicide concern
-                                    </option>
-                                    <option value="Spam or irrelevant content">
-                                        Spam or irrelevant content
-                                    </option>
+                                    <option value="Harassment or bullying">Harassment or bullying</option>
+                                    <option value="Hate speech">Hate speech</option>
+                                    <option value="Abuse or threats">Abuse or threats</option>
+                                    <option value="Self-harm or suicide concern">Self-harm or suicide concern</option>
+                                    <option value="Spam or irrelevant content">Spam or irrelevant content</option>
                                     <option value="Other">Other</option>
 
                                 </select>
 
-                                <button type="submit" class="btn btn-primary">
-                                    Submit Report
-                                </button>
+                                <div class="form-buttons">
+
+    <button type="submit" class="btn btn-primary">
+        Submit Report
+    </button>
+
+    <button
+        type="button"
+        class="cancel-button"
+        onclick="cancelReportForm(this)">
+        Cancel
+    </button>
+
+</div>
 
                             </form>
 
-                            <!-- REPLIES -->
+                            <!-- REPLIES SECTION -->
 
                             <section class="replies-section">
 
@@ -182,26 +199,13 @@
 
                                             <!-- REPORT REPLY FORM -->
 
-                                            <form
-                                                method="POST"
-                                                class="report-form">
+                                            <form method="POST" class="report-form">
 
                                                 {% csrf_token %}
 
-                                                <input
-                                                    type="hidden"
-                                                    name="action"
-                                                    value="report">
-
-                                                <input
-                                                    type="hidden"
-                                                    name="target_type"
-                                                    value="reply">
-
-                                                <input
-                                                    type="hidden"
-                                                    name="target_id"
-                                                    value="{{ reply.pk }}">
+                                                <input type="hidden" name="action" value="report">
+                                                <input type="hidden" name="target_type" value="reply">
+                                                <input type="hidden" name="target_id" value="{{ reply.pk }}">
 
                                                 <label for="reply-report-{{ reply.pk }}">
                                                     Why are you reporting this reply?
@@ -212,33 +216,30 @@
                                                     name="reason"
                                                     required>
 
-                                                    <option value="">
-                                                        Select a reason
-                                                    </option>
-                                                    <option value="Harassment or bullying">
-                                                        Harassment or bullying
-                                                    </option>
-                                                    <option value="Hate speech">
-                                                        Hate speech
-                                                    </option>
-                                                    <option value="Abuse or threats">
-                                                        Abuse or threats
-                                                    </option>
-                                                    <option value="Self-harm or suicide concern">
-                                                        Self-harm or suicide concern
-                                                    </option>
-                                                    <option value="Spam or irrelevant content">
-                                                        Spam or irrelevant content
-                                                    </option>
+                                                    <option value="">Select a reason</option>
+                                                    <option value="Harassment or bullying">Harassment or bullying</option>
+                                                    <option value="Hate speech">Hate speech</option>
+                                                    <option value="Abuse or threats">Abuse or threats</option>
+                                                    <option value="Self-harm or suicide concern">Self-harm or suicide concern</option>
+                                                    <option value="Spam or irrelevant content">Spam or irrelevant content</option>
                                                     <option value="Other">Other</option>
 
                                                 </select>
 
-                                                <button
-                                                    type="submit"
-                                                    class="btn btn-primary">
-                                                    Submit Report
-                                                </button>
+                                                <div class="form-buttons">
+
+    <button type="submit" class="btn btn-primary">
+        Submit Report
+    </button>
+
+    <button
+        type="button"
+        class="cancel-button"
+        onclick="cancelReportForm(this)">
+        Cancel
+    </button>
+
+</div>
 
                                             </form>
 
@@ -265,20 +266,9 @@
 
                                     {% csrf_token %}
 
-                                    <input
-                                        type="hidden"
-                                        name="action"
-                                        value="reply">
-
-                                    <input
-                                        type="hidden"
-                                        name="post_id"
-                                        value="{{ post.post_id }}">
-
-                                    <input
-                                        type="hidden"
-                                        name="page"
-                                        value="{{ page_obj.number }}">
+                                    <input type="hidden" name="action" value="reply">
+                                    <input type="hidden" name="post_id" value="{{ post.post_id }}">
+                                    <input type="hidden" name="page" value="{{ page_obj.number }}">
 
                                     {% if reply_error and reply_error_post_id == post.post_id|stringformat:"s" %}
                                         <p class="error-message">
@@ -304,11 +294,20 @@
                                         / 1000 characters
                                     </div>
 
-                                    <button
-                                        type="submit"
-                                        class="btn btn-primary">
-                                        Submit Reply
-                                    </button>
+                                    <div class="form-buttons">
+
+    <button type="submit" class="btn btn-primary">
+        Submit Reply
+    </button>
+
+    <button
+        type="button"
+        class="cancel-button"
+        onclick="cancelReplyForm(this)">
+        Cancel
+    </button>
+
+</div>
 
                                 </form>
 
@@ -371,6 +370,7 @@
                 {% else %}
 
                     <div class="empty-posts">
+
                         <h2>No discussions yet</h2>
 
                         <p>
@@ -383,6 +383,7 @@
                             class="btn btn-primary">
                             Share Something
                         </a>
+
                     </div>
 
                 {% endif %}
@@ -438,6 +439,7 @@
             setupReplyVisibility();
 
         });
+
 
         function togglePost(button) {
 
@@ -497,23 +499,30 @@
 
 
         // SHOW / HIDE REPORT FORM
+function toggleReportForm(button) {
 
-        function toggleReportForm(button) {
+    const replyCard = button.closest('.reply-card');
 
-            const card = button.closest('.reply-card')
-                || button.closest('.post-card');
+    let form;
 
-            const form = card.querySelector(':scope > .report-form');
+    if (replyCard) {
+        // Reporting a reply
+        form = replyCard.querySelector('.report-form');
+    } else {
+        // Reporting a post
+        const postCard = button.closest('.post-card');
+        form = postCard.querySelector(':scope > .report-form');
+    }
 
-            if (!form) return;
+    if (!form) return;
 
-            form.classList.toggle('report-form-open');
+    form.classList.toggle('report-form-open');
 
-            if (form.classList.contains('report-form-open')) {
-                form.querySelector('select').focus();
-            }
+    if (form.classList.contains('report-form-open')) {
+        form.querySelector('select').focus();
+    }
 
-        }
+}
 
 
         // COLLAPSIBLE REPLIES
@@ -575,6 +584,41 @@
                 : 'Show fewer replies';
 
         }
+
+        // CANCEL REPLY FORM
+
+function cancelReplyForm(button) {
+
+    const form = button.closest('.reply-form');
+
+    form.reset();
+    form.classList.remove('reply-form-open');
+
+    const counter = form.querySelector('.reply-character-count');
+
+    if (counter) {
+        counter.textContent = '0';
+    }
+
+    const container = form.querySelector('.character-counter');
+
+    if (container) {
+        container.classList.remove('near-limit', 'at-limit');
+    }
+
+}
+
+
+// CANCEL REPORT FORM
+
+function cancelReportForm(button) {
+
+    const form = button.closest('.report-form');
+
+    form.reset();
+    form.classList.remove('report-form-open');
+
+}
 
     </script>
 
