@@ -1,127 +1,118 @@
+
 {% load static %}
-
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-```
-<title>Dashboard - SafeSpace</title>
-
-<link rel="stylesheet" href="{% static 'core/css/style.css' %}">
-```
-
+    <title>Dashboard - SafeSpace</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
 </head>
 
 <body>
 
-```
-<nav class="navbar">
-
-    <div class="logo">SafeSpace</div>
-
-    <div class="nav-links">
-        <a href="{% url 'home' %}">Home</a>
-        <a href="{% url 'logout' %}">Log Out</a>
-    </div>
-
-</nav>
-
-
-<main class="dashboard-container">
-    {% if messages %}
-    {% for message in messages %}
-        <div class="success-message">
-            {{ message }}
+    <nav class="navbar">
+        <div class="logo">SafeSpace</div>
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'logout' %}">Log Out</a>
         </div>
-    {% endfor %}
-{% endif %}
+    </nav>
 
-    <section class="dashboard-welcome">
+    <main class="dashboard-container">
 
-        <p class="welcome-label">YOUR SAFE IDENTITY</p>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="success-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
 
-        <h1>
-            Welcome, {{ request.user.anonymousprofile.anonymous_name }} 🌿
-        </h1>
+        <section class="dashboard-welcome">
+            <p class="welcome-label">YOUR SAFE IDENTITY</p>
+            <h1>Welcome, {{ request.user.anonymousprofile.anonymous_name }}</h1>
+            <p>
+                This is your space to share, listen and connect with
+                fellow students. You don't have to share everything,
+                but you don't have to feel alone either.
+            </p>
+        </section>
 
-        <p>
-            A safe space to share your experiences, connect with others,
-            and support fellow students anonymously.
-        </p>
+        <section class="dashboard-actions">
 
-    </section>
+            <a href="{% url 'create_post' %}" class="dashboard-action primary-action">
+                <span class="action-icon">+</span>
+                <div>
+                    <h3>Share Something</h3>
+                    <p>Have something on your mind? Share it anonymously.</p>
+                </div>
+            </a>
 
+            <a href="#categories" class="dashboard-action secondary-action">
+                <span class="action-icon">→</span>
+                <div>
+                    <h3>Explore Discussions</h3>
+                    <p>Read what others are sharing and join the conversation.</p>
+                </div>
+            </a>
 
-    <section class="dashboard-actions">
+        </section>
 
-        <a href="{% url 'create_post' %}" class="dashboard-action primary-action">
-            <span class="action-icon">+</span>
+        <section class="categories-section" id="categories">
 
-            <div>
-                <h3>Share Something</h3>
-                <p>Share what's on your mind with your peers.</p>
-            </div>
-        </a>
-
-
-        <a href="#" class="dashboard-action secondary-action">
-
-            <span class="action-icon">→</span>
-
-            <div>
-                <h3>Explore Discussions</h3>
-                <p>Read experiences and support other students.</p>
+            <div class="section-heading">
+                <h2>Explore SafeSpace</h2>
+                <p>Find discussions based on what you're going through.</p>
             </div>
 
-        </a>
+            <div class="category-grid">
 
-    </section>
+                {% for category in categories %}
 
+                    <a href="{% url 'category_posts' category.category_id %}"
+                       class="category-card">
 
-    <section class="categories-section">
+                        <h3>{{ category.name }}</h3>
 
-        <div class="section-heading">
+                        <p>{{ category.description|default:"Explore conversations shared by fellow students." }}</p>
 
-            <h2>Explore SafeSpace</h2>
+                        <span class="category-link">View discussions →</span>
 
-            <p>
-                Find discussions based on what you're going through.
-            </p>
+                    </a>
+
+                {% empty %}
+
+                    <p class="empty-message">
+                        No discussion categories are available yet.
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="dashboard-footer">
+
+        <div class="footer-content">
+
+            <div class="footer-brand">
+                <h3>SafeSpace</h3>
+                <p>A space to share, listen and support one another.</p>
+            </div>
+
+            <div class="footer-note">
+                <p>Your thoughts matter. Your identity stays private.</p>
+            </div>
 
         </div>
 
-<div class="category-grid">
+        <div class="footer-bottom">
+            <p>&copy; {% now "Y" %} SafeSpace. All rights reserved.</p>
+        </div>
 
-    {% for category in categories %}
-
-        <a href="{% url 'category_posts' category.category_id %}"
-           class="category-card">
-
-            <h3>{{ category.name }}</h3>
-
-            <p>
-                {{ category.description }}
-            </p>
-
-            <span class="category-link">
-                Explore →
-            </span>
-
-        </a>
-
-    {% endfor %}
-
-</div>
-
-    </section>
-
-</main>
-```
+    </footer>
 
 </body>
-
 </html>

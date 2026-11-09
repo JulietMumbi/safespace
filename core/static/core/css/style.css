@@ -2262,3 +2262,94 @@ input {
         font-size: 28px;
     }
 }
+
+
+
+/* Student dashboard refinements */
+
+/* Category card hover effect */
+.category-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+}
+
+.category-card p {
+    line-height: 1.6;
+}
+
+/* Category link */
+.category-link {
+    display: inline-block;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+/* Empty categories message */
+.empty-message {
+    color: #777;
+    padding: 20px 0;
+    text-align: center;
+}
+
+/* Student dashboard footer */
+.dashboard-footer {
+    background-color: #e8eee7;
+    margin-top: 70px;
+    padding: 35px 8% 18px;
+    color: #46564a;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-bottom: 25px;
+}
+
+.footer-brand h3 {
+    margin: 0 0 8px;
+    color: #405746;
+    font-size: 20px;
+}
+
+.footer-brand p,
+.footer-note p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.footer-note {
+    max-width: 280px;
+    text-align: right;
+}
+
+.footer-bottom {
+    border-top: 1px solid #d1dbd1;
+    padding-top: 15px;
+    text-align: center;
+}
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 12px;
+    color: #718074;
+}
+
+@media (max-width: 600px) {
+    .footer-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .footer-note {
+        text-align: left;
+    }
+}
