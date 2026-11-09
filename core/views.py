@@ -2,15 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from core.toxicity import load_toxicity_model
 from django.urls import reverse
 from .toxicity import load_toxicity_model, contains_disguised_abuse
-from django.utils import timezone
 from .models import PostArchiveLog
 from .archive_utils import five_months_ago
 from django.db import transaction, IntegrityError
 from django.contrib.auth.hashers import make_password
-from django.http import HttpResponseForbidden, request
+from django.http import HttpResponseForbidden
 from .models import (
     User,
     AnonymousProfile,
@@ -214,7 +212,6 @@ def dashboard(request):
         'categories': categories
     })
 
-    return render(request, 'core/dashboard.html')
 
 
 
@@ -531,10 +528,14 @@ def moderation_dashboard(request):
             return redirect('/moderation-dashboard/?status=ai_flagged')
 
         # User-reported content
-        report_id = request.POST.get('report_id')
+        report_id = (request.POST.get('report_id') or '').strip()
+
+        if not report_id.isdigit():
+            messages.error(request, 'Invalid report ID. Please try again.')
+            return redirect('moderation_dashboard')
 
         report = Report.objects.filter(
-            pk=report_id
+            pk=int(report_id)
         ).select_related('post', 'reply').first()
 
         if report is None:
@@ -573,7 +574,7 @@ def moderation_dashboard(request):
 
             target.status = 'removed'
             target.save(update_fields=['status'])
-            report.status = 'resolved'
+            report.status = 'removed'
 
         elif action == 'dismiss':
             report.status = 'dismissed'
@@ -597,7 +598,6 @@ def moderation_dashboard(request):
 
     # Report counts
     pending_count = Report.objects.filter(status='pending').count()
-    resolved_count = Report.objects.filter(status='resolved').count()
     dismissed_count = Report.objects.filter(status='dismissed').count()
 
     # Removed content
@@ -629,7 +629,6 @@ def moderation_dashboard(request):
     valid_filters = [
         'overview',
         'pending',
-        'resolved',
         'dismissed',
         'removed',
         'ai_flagged',
@@ -648,7 +647,7 @@ def moderation_dashboard(request):
         'reply__post',
     ).order_by('-created_at')
 
-    if selected_filter in ['pending', 'resolved', 'dismissed']:
+    if selected_filter in ['pending', 'dismissed']:
         reports = reports.filter(status=selected_filter)
     else:
         reports = reports.none()
@@ -662,7 +661,6 @@ def moderation_dashboard(request):
     context = {
         'reports': reports,
         'pending_count': pending_count,
-        'resolved_count': resolved_count,
         'dismissed_count': dismissed_count,
         'removed_count': removed_count,
         'removed_posts': removed_posts,
