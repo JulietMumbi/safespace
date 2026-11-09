@@ -157,7 +157,7 @@
                             <section class="replies-section">
 
                                 <h3 class="replies-heading">
-                                    Replies ({{ post.replies.count }})
+                                    Replies ({{ post.active_reply_count }})
                                 </h3>
 
                                 {% for reply in post.replies.all %}

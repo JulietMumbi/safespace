@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.urls import reverse
@@ -432,28 +433,63 @@ def category_posts(request, category_id):
 
             if not content:
                 reply_error = 'Please write something before submitting.'
+
             elif len(content) > 1000:
                 reply_error = 'Your reply cannot exceed 1,000 characters.'
 
+            else:
+                # Check for disguised abusive words.
+                disguised_abuse = contains_disguised_abuse(content)
+
+                try:
+                    # Run the existing AI model.
+                    model = load_toxicity_model()
+                    prediction = int(model.predict([content])[0])
+
+                except Exception:
+                    reply_error = (
+                        'We could not check your reply right now. '
+                        'Please try again later.'
+                    )
+
+                else:
+                    # Flag the reply if either check detects a concern.
+                    should_flag = disguised_abuse or prediction == 1
+
+                    Reply.objects.create(
+                        post=post,
+                        author=request.user.anonymousprofile,
+                        content=content,
+                        status='flagged' if should_flag else 'active'
+                    )
+
+                    if should_flag:
+                        messages.info(
+                            request,
+                            'Your reply was submitted for moderator review.'
+                        )
+                    else:
+                        messages.success(
+                            request,
+                            'Your reply has been posted.'
+                        )
+
+                    return redirect(
+                        f"{reverse('category_posts', args=[category_id])}"
+                        f"?page={page_number}#post-{post.post_id}"
+                    )
+
             if reply_error:
                 reply_error_post_id = str(post.post_id)
-            else:
-                Reply.objects.create(
-                    post=post,
-                    author=request.user.anonymousprofile,
-                    content=content
-                )
-
-                messages.success(request, 'Your reply has been posted.')
-
-                return redirect(
-                    f"{reverse('category_posts', args=[category_id])}"
-                    f"?page={page_number}#post-{post.post_id}"
-                )
 
     posts_list = Post.objects.filter(
         category=category,
         status='active'
+    ).annotate(
+        active_reply_count=Count(
+            'replies',
+            filter=Q(replies__status='active')
+        )
     ).order_by('-created_at')
 
     paginator = Paginator(posts_list, 10)
@@ -486,14 +522,61 @@ def moderation_dashboard(request):
         action = request.POST.get('action')
         notes = request.POST.get('notes', '').strip()
 
-        # AI-flagged posts
-        ai_post_id = request.POST.get('ai_post_id')
-        print("AI POST ID:", ai_post_id)
-        print("POST DATA:", request.POST)
+        # AI-FLAGGED REPLIES
+        ai_reply_id = (request.POST.get('ai_reply_id') or '').strip()
+
+        if ai_reply_id:
+            if not ai_reply_id.isdigit():
+                messages.error(request, 'Invalid reply ID.')
+                return redirect('/moderation-dashboard/?status=ai_flagged')
+
+            reply = Reply.objects.filter(
+                pk=int(ai_reply_id),
+                status='flagged'
+            ).first()
+
+            if reply is None:
+                messages.error(
+                    request,
+                    'AI-flagged reply not found or already reviewed.'
+                )
+                return redirect('/moderation-dashboard/?status=ai_flagged')
+
+            if action not in ['remove', 'dismiss']:
+                messages.error(request, 'Invalid moderation action.')
+                return redirect('/moderation-dashboard/?status=ai_flagged')
+
+            if action == 'remove':
+                reply.status = 'removed'
+                success_message = 'AI-flagged reply removed successfully.'
+            else:
+                reply.status = 'active'
+                success_message = (
+                    'AI flag dismissed. The reply is now visible to students.'
+                )
+
+            reply.save(update_fields=['status'])
+
+            ModerationAction.objects.create(
+                moderator=request.user,
+                reply=reply,
+                action_type=action,
+                reason=notes or f'AI-flagged reply {action}d by moderator.',
+            )
+
+            messages.success(request, success_message)
+            return redirect('/moderation-dashboard/?status=ai_flagged')
+
+        # AI-FLAGGED POSTS
+        ai_post_id = (request.POST.get('ai_post_id') or '').strip()
 
         if ai_post_id:
+            if not ai_post_id.isdigit():
+                messages.error(request, 'Invalid post ID.')
+                return redirect('/moderation-dashboard/?status=ai_flagged')
+
             post = Post.objects.filter(
-                pk=ai_post_id,
+                pk=int(ai_post_id),
                 status='flagged'
             ).first()
 
@@ -527,7 +610,7 @@ def moderation_dashboard(request):
             messages.success(request, success_message)
             return redirect('/moderation-dashboard/?status=ai_flagged')
 
-        # User-reported content
+        # USER-REPORTED CONTENT
         report_id = (request.POST.get('report_id') or '').strip()
 
         if not report_id.isdigit():
@@ -622,7 +705,21 @@ def moderation_dashboard(request):
         'author', 'category'
     ).order_by('-created_at')
 
-    ai_flagged_count = all_ai_flagged_posts.count()
+    ai_flagged_post_count = all_ai_flagged_posts.count()
+
+    # AI-flagged replies
+    all_ai_flagged_replies = Reply.objects.filter(
+        status='flagged'
+    ).select_related(
+        'author', 'post', 'post__category'
+    ).order_by('-created_at')
+
+    ai_flagged_reply_count = all_ai_flagged_replies.count()
+
+    # Combined AI-flagged count
+    ai_flagged_count = (
+        ai_flagged_post_count + ai_flagged_reply_count
+    )
 
     selected_filter = request.GET.get('status', 'overview')
 
@@ -652,10 +749,17 @@ def moderation_dashboard(request):
     else:
         reports = reports.none()
 
+    # Only display AI-flagged content on the AI review page
     ai_flagged_posts = (
         all_ai_flagged_posts
         if selected_filter == 'ai_flagged'
         else Post.objects.none()
+    )
+
+    ai_flagged_replies = (
+        all_ai_flagged_replies
+        if selected_filter == 'ai_flagged'
+        else Reply.objects.none()
     )
 
     context = {
@@ -666,7 +770,10 @@ def moderation_dashboard(request):
         'removed_posts': removed_posts,
         'removed_replies': removed_replies,
         'ai_flagged_posts': ai_flagged_posts,
+        'ai_flagged_replies': ai_flagged_replies,
         'ai_flagged_count': ai_flagged_count,
+        'ai_flagged_post_count': ai_flagged_post_count,
+        'ai_flagged_reply_count': ai_flagged_reply_count,
         'selected_filter': selected_filter,
     }
 
@@ -675,7 +782,6 @@ def moderation_dashboard(request):
         'core/moderation_dashboard.html',
         context
     )
-
 
 def moderation_report_detail(request, report_id):
     if not request.user.is_authenticated:
