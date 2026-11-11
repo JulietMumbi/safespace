@@ -214,6 +214,8 @@ def dashboard(request):
 
 
 
+
+
 def create_post(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -225,22 +227,32 @@ def create_post(request):
         category_id = request.POST.get('category')
         title = request.POST.get('title', '').strip()
         content = request.POST.get('content', '').strip()
+        emotional_state = request.POST.get('emotional_state', '').strip()
 
         def show_error(message):
             return render(request, 'core/create_post.html', {
                 'categories': categories,
                 'selected_category_id': category_id,
+                'selected_emotional_state': emotional_state,
+                'emotional_state_choices': Post.EMOTIONAL_STATE_CHOICES,
+                'entered_title': title,
+                'entered_content': content,
                 'error': message
             })
 
         if not category_id or not title or not content:
-            return show_error('Please fill in all fields.')
+            return show_error('Please fill in all required fields.')
 
         if len(title) > 200:
             return show_error('The title cannot exceed 200 characters.')
 
         if len(content) > 2000:
             return show_error('Your post cannot exceed 2,000 characters.')
+
+        valid_emotional_states = dict(Post.EMOTIONAL_STATE_CHOICES)
+
+        if emotional_state and emotional_state not in valid_emotional_states:
+            return show_error('Please select a valid emotional state.')
 
         category = Category.objects.filter(
             category_id=category_id
@@ -264,20 +276,24 @@ def create_post(request):
                 'We could not check your post right now. Please try again later.'
             )
 
-        # Flag the post if either check detects a concern.
+        # Check for self-harm concerns.
         self_harm_concern = contains_self_harm_concern(text_to_check)
 
+        # Flag the post if any check detects a concern.
         should_flag = (
             disguised_abuse
             or self_harm_concern
             or prediction == 1
         )
+
         anonymous_profile = request.user.anonymousprofile
+
         Post.objects.create(
             author=anonymous_profile,
             category=category,
             title=title,
             content=content,
+            emotional_state=emotional_state or None,
             status='flagged' if should_flag else 'active'
         )
 
@@ -296,10 +312,12 @@ def create_post(request):
 
     return render(request, 'core/create_post.html', {
         'categories': categories,
-        'selected_category_id': selected_category_id
+        'selected_category_id': selected_category_id,
+        'emotional_state_choices': Post.EMOTIONAL_STATE_CHOICES,
+        'selected_emotional_state': '',
+        'entered_title': '',
+        'entered_content': ''
     })
-
-
 
 
 def category_posts(request, category_id):

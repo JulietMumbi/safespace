@@ -16,14 +16,12 @@
 <body>
 
     <nav class="navbar">
-
         <div class="logo">SafeSpace</div>
 
         <div class="nav-links">
             <a href="{% url 'dashboard' %}">Dashboard</a>
             <a href="{% url 'logout' %}">Log Out</a>
         </div>
-
     </nav>
 
     <main class="form-container">
@@ -71,6 +69,87 @@
 
             </div>
 
+            <!-- EMOTIONAL STATE -->
+            <div class="form-group emotion-form-group">
+
+                <label>How are you feeling?</label>
+
+                <p class="emotion-description">
+                    Choose the feeling that best describes your current experience.
+                    This is optional.
+                </p>
+
+                <div class="emotion-grid">
+
+                    {% for value, label in emotional_state_choices %}
+
+                        <label class="emotion-option">
+
+                            <input
+                                type="radio"
+                                name="emotional_state"
+                                value="{{ value }}"
+                                {% if selected_emotional_state == value %}
+                                    checked
+                                {% endif %}
+                            >
+
+                            <span class="emotion-card">
+
+                                {% if value == 'anxious' %}
+                                    <span class="emotion-emoji">😟</span>
+                                {% elif value == 'overwhelmed' %}
+                                    <span class="emotion-emoji">😩</span>
+                                {% elif value == 'lonely' %}
+                                    <span class="emotion-emoji">🫂</span>
+                                {% elif value == 'stressed' %}
+                                    <span class="emotion-emoji">😣</span>
+                                {% elif value == 'hopeful' %}
+                                    <span class="emotion-emoji">🌱</span>
+                                {% elif value == 'grateful' %}
+                                    <span class="emotion-emoji">💚</span>
+                                {% elif value == 'other' %}
+                                    <span class="emotion-emoji">✨</span>
+                                {% endif %}
+
+                                <span class="emotion-label">
+                                    {{ label }}
+                                </span>
+
+                            </span>
+
+                        </label>
+
+                    {% endfor %}
+
+                    <!-- PREFER NOT TO SAY -->
+                    <label class="emotion-option">
+
+                        <input
+                            type="radio"
+                            name="emotional_state"
+                            value=""
+                            {% if not selected_emotional_state %}
+                                checked
+                            {% endif %}
+                        >
+
+                        <span class="emotion-card">
+
+                            <span class="emotion-emoji">—</span>
+
+                            <span class="emotion-label">
+                                Prefer not to say
+                            </span>
+
+                        </span>
+
+                    </label>
+
+                </div>
+
+            </div>
+
             <!-- TITLE -->
             <div class="form-group">
 
@@ -82,6 +161,7 @@
                     name="title"
                     placeholder="Give your post a title"
                     maxlength="200"
+                    value="{{ entered_title|default:'' }}"
                     required
                 >
 
@@ -99,10 +179,10 @@
                     maxlength="2000"
                     placeholder="Share your thoughts here..."
                     required
-                ></textarea>
+                >{{ entered_content|default:'' }}</textarea>
 
                 <div class="character-counter">
-                    <span id="character-count">0</span>
+                    <span id="character-count">{{ entered_content|length|default:0 }}</span>
                     / 2000 characters
                 </div>
 

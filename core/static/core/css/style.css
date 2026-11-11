@@ -2440,3 +2440,120 @@ input {
         flex-direction: column;
     }
 }
+
+
+/* =========================================
+   EMOTIONAL STATE SELECTION
+========================================= */
+
+.emotion-form-group {
+    margin-top: 28px;
+}
+
+.emotion-description {
+    color: #777f78;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-top: 6px;
+    margin-bottom: 16px;
+}
+
+.emotion-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.emotion-option {
+    display: block;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.emotion-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.emotion-card {
+    min-height: 105px;
+    padding: 14px 8px;
+    border: 1px solid #e1e7e1;
+    border-radius: 13px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    text-align: center;
+    transition: background 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+.emotion-emoji {
+    font-size: 27px;
+    line-height: 1.2;
+}
+
+.emotion-label {
+    color: #525d54;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.emotion-option:hover .emotion-card {
+    border-color: #9bb5a0;
+    background: #f5f8f4;
+    transform: translateY(-2px);
+}
+
+.emotion-option input:checked + .emotion-card {
+    background: #eaf2e9;
+    border: 2px solid #789681;
+    box-shadow: 0 3px 10px rgba(74, 105, 81, 0.10);
+}
+
+.emotion-option input:checked + .emotion-card .emotion-label {
+    color: #405e48;
+    font-weight: 700;
+}
+
+.emotion-option input:focus-visible + .emotion-card {
+    outline: 2px solid #527b5c;
+    outline-offset: 3px;
+}
+
+/* Smaller screens */
+
+@media (max-width: 600px) {
+
+    .emotion-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .emotion-card {
+        min-height: 95px;
+    }
+
+}
+
+/* Emotional state displayed on discussion posts */
+
+.post-emotion {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #edf3ec;
+    color: #506b55;
+    font-size: 12px;
+    font-weight: 600;
+    vertical-align: middle;
+}

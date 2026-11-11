@@ -67,6 +67,15 @@ class Post(models.Model):
         ('flagged', 'Flagged'),
         ('removed', 'Removed'),
     ]
+    EMOTIONAL_STATE_CHOICES = [
+    ('anxious', 'Anxious'),
+    ('overwhelmed', 'Overwhelmed'),
+    ('lonely', 'Lonely'),
+    ('stressed', 'Stressed'),
+    ('hopeful', 'Hopeful'),
+    ('grateful', 'Grateful'),
+    ('other', 'Other'),
+]
 
     post_id = models.BigAutoField(primary_key=True)
 
@@ -84,6 +93,12 @@ class Post(models.Model):
 
     title = models.CharField(max_length=200)
     content = models.TextField()
+    emotional_state = models.CharField(
+    max_length=20,
+    choices=EMOTIONAL_STATE_CHOICES,
+    blank=True,
+    null=True
+)
 
     status = models.CharField(
         max_length=20,
