@@ -33,24 +33,6 @@ urlpatterns = [
         name='category_posts'
     ),
     
-    path(
-    'admin-dashboard/',
-    views.admin_dashboard,
-    name='admin_dashboard'
-),
-
-path(
-    'admin-dashboard/restore/<int:post_id>/',
-    views.restore_archived_post,
-    name='restore_archived_post'
-),
-
-
-path('admin-active-posts/', views.admin_active_posts, name='admin_active_posts'),
-
-path('admin-posts-due/', views.admin_posts_due, name='admin_posts_due'),
-
-path('admin-archived-posts/', views.admin_archived_posts, name='admin_archived_posts'),
 
 path(
     'delete-post/<int:post_id>/',

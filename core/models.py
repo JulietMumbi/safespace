@@ -8,7 +8,7 @@ class User(AbstractUser):
     ROLE_CHOICES = [
         ('student', 'Student'),
         ('moderator', 'Moderator'),
-        ('admin', 'Admin'),
+
     ]
 
     ACCOUNT_STATUS_CHOICES = [

@@ -5,8 +5,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.urls import reverse
 from .toxicity import load_toxicity_model, contains_disguised_abuse
-from .models import PostArchiveLog
-from .archive_utils import five_months_ago
 from django.db import transaction, IntegrityError
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponseForbidden
@@ -180,14 +178,12 @@ def user_login(request):
             login(request, user)
 
             # Redirect users according to their roles
-            if user.is_superuser or user.role == 'admin':
-                return redirect('admin_dashboard')
-
-            elif user.role == 'moderator':
-                return redirect('moderation_dashboard')
+            # Redirect users according to their roles
+            if user.role == 'moderator':
+             return redirect('moderation_dashboard')
 
             else:
-                return redirect('dashboard')
+              return redirect('dashboard')
 
         return render(request, 'core/login.html', {
             'error': 'Invalid email or password.'
@@ -511,7 +507,7 @@ def moderation_dashboard(request):
 
     if not (
         request.user.is_superuser
-        or request.user.role in ['admin', 'moderator']
+        or request.user.role in ['moderator']
     ):
         return HttpResponseForbidden(
             'You are not authorized to access this page.'
@@ -789,7 +785,7 @@ def moderation_report_detail(request, report_id):
 
     if not (
         request.user.is_superuser
-        or request.user.role in ['admin', 'moderator']
+        or request.user.role in [ 'moderator']
     ):
         return HttpResponseForbidden(
             'You are not authorized to access this page.'
@@ -819,196 +815,6 @@ def moderation_report_detail(request, report_id):
     )
 
 
-
-def admin_dashboard(request):
-
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not (
-        request.user.is_superuser
-        or request.user.role == 'admin'
-    ):
-        return HttpResponseForbidden(
-            'You are not authorized to access this page.'
-        )
-
-    cutoff_date = five_months_ago()
-
-    active_posts = Post.objects.filter(
-        status='active'
-    )
-
-    posts_due = active_posts.filter(
-        created_at__date__lte=cutoff_date
-    )
-
-    archived_posts = Post.objects.filter(
-        status='archived'
-    )
-
-    archive_history = PostArchiveLog.objects.select_related(
-        'post',
-        'performed_by'
-    ).order_by('-created_at')[:30]
-
-    context = {
-        'active_posts_count': active_posts.count(),
-        'posts_due_count': posts_due.count(),
-        'archived_count': archived_posts.count(),
-        'archive_history': archive_history,
-    }
-
-    return render(
-        request,
-        'core/admin_dashboard.html',
-        context
-    )
-
-
-# ACTIVE POSTS PAGE
-def admin_active_posts(request):
-
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not (
-        request.user.is_superuser
-        or request.user.role == 'admin'
-    ):
-        return HttpResponseForbidden(
-            'You are not authorized to access this page.'
-        )
-
-    posts = Post.objects.filter(
-        status='active'
-    ).select_related(
-        'author', 'category'
-    ).order_by('-created_at')
-
-    return render(
-        request,
-        'core/admin_post_list.html',
-        {
-            'posts': posts,
-            'page_title': 'Active Posts',
-            'page_description': 'All currently active student discussions.',
-            'show_restore': False,
-        }
-    )
-
-
-# POSTS DUE FOR ARCHIVING PAGE
-def admin_posts_due(request):
-
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not (
-        request.user.is_superuser
-        or request.user.role == 'admin'
-    ):
-        return HttpResponseForbidden(
-            'You are not authorized to access this page.'
-        )
-
-    cutoff_date = five_months_ago()
-
-    posts = Post.objects.filter(
-        status='active',
-        created_at__date__lte=cutoff_date
-    ).select_related(
-        'author', 'category'
-    ).order_by('created_at')
-
-    return render(
-        request,
-        'core/admin_post_list.html',
-        {
-            'posts': posts,
-            'page_title': 'Posts Due for Archiving',
-            'page_description': 'Active posts that have reached the five-month retention period.',
-            'show_restore': False,
-        }
-    )
-
-
-# ARCHIVED POSTS PAGE
-def admin_archived_posts(request):
-
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not (
-        request.user.is_superuser
-        or request.user.role == 'admin'
-    ):
-        return HttpResponseForbidden(
-            'You are not authorized to access this page.'
-        )
-
-    posts = Post.objects.filter(
-        status='archived'
-    ).select_related(
-        'author', 'category'
-    ).order_by('-archived_at')
-
-    return render(
-        request,
-        'core/admin_post_list.html',
-        {
-            'posts': posts,
-            'page_title': 'Archived Posts',
-            'page_description': 'Posts hidden from active student discussions.',
-            'show_restore': True,
-        }
-    )
-
-
-
-def restore_archived_post(request, post_id):
-
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not (
-        request.user.is_superuser
-        or request.user.role == 'admin'
-    ):
-        return HttpResponseForbidden(
-            'You are not authorized to access this page.'
-        )
-
-    if request.method != 'POST':
-        return HttpResponseForbidden(
-            'Invalid request method.'
-        )
-
-    post = get_object_or_404(
-        Post,
-        pk=post_id,
-        status='archived'
-    )
-
-    post.status = 'active'
-    post.archived_at = None
-
-    post.save(
-        update_fields=['status', 'archived_at']
-    )
-
-    PostArchiveLog.objects.create(
-        post=post,
-        action='restored',
-        performed_by=request.user
-    )
-
-    messages.success(
-        request,
-        'Post restored successfully.'
-    )
-
-    return redirect('admin_dashboard')
 
 def delete_post(request, post_id):
     if not request.user.is_authenticated:
