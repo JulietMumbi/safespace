@@ -1,0 +1,124 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Guidelines - SafeSpace</title>
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">SafeSpace</div>
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'signup' %}">Sign Up</a>
+        </div>
+    </nav>
+
+    <main class="form-container guidelines-page">
+
+        <h1>SafeSpace Community Guidelines</h1>
+
+        <p class="form-description">
+            SafeSpace is a space for university students to share experiences,
+            listen to one another and offer peer support in a respectful environment.
+        </p>
+
+        <section class="guideline-section">
+            <h2>1. Treat everyone with respect</h2>
+            <p>
+                Communicate with kindness and empathy. Do not insult, threaten,
+                bully, harass, discriminate against or deliberately humiliate
+                other members.
+            </p>
+        </section>
+
+        <section class="guideline-section">
+            <h2>2. Protect personal information</h2>
+            <p>
+                Do not share your own or another person's full name, phone number,
+                email address, home address, student number or other identifying
+                information in posts and replies. Do not attempt to discover
+                another member's real identity.
+            </p>
+        </section>
+
+        <section class="guideline-section">
+            <h2>3. Respect different experiences</h2>
+            <p>
+                Students have different backgrounds and experiences. Avoid
+                judgement, ridicule or dismissive comments. Offer support without
+                forcing someone to accept your opinions or advice.
+            </p>
+        </section>
+
+        <section class="guideline-section">
+            <h2>4. Share responsibly</h2>
+            <p>
+                Keep discussions relevant to the selected category. Do not post
+                threats, hateful content, explicit harassment, spam or content
+                intended to harm or intimidate another person.
+            </p>
+        </section>
+
+        <section class="guideline-section">
+            <h2>5. Use the reporting feature</h2>
+            <p>
+                If you encounter content that is abusive, harmful or inappropriate,
+                report it for moderator review. Do not retaliate or engage in
+                arguments that may escalate the situation.
+            </p>
+        </section>
+
+        <section class="guideline-section">
+            <h2>6. Understand anonymity and moderation</h2>
+            <p>
+                SafeSpace displays anonymous nicknames to other students.
+                However, this does not mean that the platform collects no account
+                information. Your registered email is used for your account and
+                should not be included in public discussions.
+            </p>
+            <p>
+                Posts and replies may be checked by automated content filters and
+                reviewed by authorised moderators when reported or flagged.
+                Automated filters may not identify every harmful expression.
+            </p>
+        </section>
+
+        <section class="guideline-section">
+            <h2>7. Understand the purpose of SafeSpace</h2>
+            <p>
+                SafeSpace provides peer support and a place to share experiences.
+                It is not a professional counselling service, medical service or
+                emergency response platform. Peer responses should not replace
+                professional help when it is needed.
+            </p>
+            <p>
+                If you or someone else is in immediate danger, seek help from
+                appropriate emergency services or a qualified professional.
+            </p>
+        </section>
+
+        <section class="guideline-section">
+            <h2>8. Respect community standards</h2>
+            <p>
+                Content that violates these guidelines may be flagged, reviewed,
+                removed or lead to account restrictions in accordance with
+                SafeSpace moderation procedures.
+            </p>
+        </section>
+
+        <div class="guidelines-footer">
+            <a href="{% url 'signup' %}" class="btn btn-primary">
+                Return to Sign Up
+            </a>
+        </div>
+
+    </main>
+
+</body>
+</html>

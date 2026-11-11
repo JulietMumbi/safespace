@@ -42,5 +42,10 @@ path(
 
 path('my-posts/', views.my_posts, name='my_posts'),
 
+path(
+    'community-guidelines/',
+    views.community_guidelines,
+    name='community_guidelines'
+),
 ]
 

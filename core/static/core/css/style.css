@@ -2557,3 +2557,125 @@ input {
     font-weight: 600;
     vertical-align: middle;
 }
+/* Community Guidelines */
+
+.guidelines-page {
+    max-width: 850px;
+    margin: 50px auto;
+    padding: 40px;
+}
+
+.guidelines-page h1 {
+    margin-bottom: 15px;
+    color: #344b40;
+}
+
+.guideline-section {
+    padding: 20px 0;
+    border-bottom: 1px solid #e5e9e3;
+}
+
+.guideline-section h2 {
+    font-size: 18px;
+    color: #425e4e;
+    margin-bottom: 9px;
+}
+
+.guideline-section p {
+    line-height: 1.7;
+    color: #626b64;
+    margin-bottom: 8px;
+}
+
+.guidelines-footer {
+    margin-top: 30px;
+}
+
+/* Signup consent */
+
+.consent-section {
+    margin: 22px 0;
+}
+
+.consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    cursor: pointer;
+}
+
+.consent-label input {
+    margin-top: 5px;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    accent-color: #617d69;
+}
+
+.consent-label a {
+    color: #526f5b;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+/* Password visibility */
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 48px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 18px;
+    color: #526f5b;
+}
+
+.password-toggle:hover {
+    opacity: 0.7;
+}
+
+.password-wrapper input:focus {
+    outline-offset: 2px;
+}
+
+.password-requirements {
+    margin-top: 10px;
+    padding: 12px 15px;
+    background: #f4f7f2;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #526653;
+}
+
+.password-requirements p {
+    font-weight: 600;
+    margin: 0 0 7px;
+}
+
+.password-requirements ul {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.8;
+}
+
+/* Hide the browser's extra password-reveal icon */
+.password-wrapper input::-ms-reveal,
+.password-wrapper input::-ms-clear {
+    display: none;
+}

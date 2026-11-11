@@ -4,10 +4,13 @@ from django.db.models import Count, Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from django.urls import reverse
 from .toxicity import contains_self_harm_concern
 from .toxicity import load_toxicity_model, contains_disguised_abuse
 from django.db import transaction, IntegrityError
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponseForbidden
 from .models import (
@@ -20,6 +23,7 @@ from .models import (
     ModerationAction,
 )
 import random
+import re
 
 
 def home(request):
@@ -101,6 +105,7 @@ def signup(request):
         password = request.POST.get('password', '')
         confirm_password = request.POST.get('confirm_password', '')
         anonymous_name = request.POST.get('anonymous_name', '').strip()
+        consent = request.POST.get('community_guidelines_accepted')
 
         def signup_error(message):
             return render(request, 'core/signup.html', {
@@ -111,8 +116,43 @@ def signup(request):
         if not email or not password or not confirm_password:
             return signup_error('Please fill in all required fields.')
 
+        if consent != 'yes':
+            return signup_error(
+                'You must read and agree to the Community Guidelines before registering.'
+            )
+
         if password != confirm_password:
             return signup_error('Passwords do not match.')
+
+        try:
+            validate_password(password, user=User(email=email))
+        except ValidationError as error:
+            return signup_error(' '.join(error.messages))
+
+        if len(password) < 8:
+            return signup_error(
+                'Password must contain at least 8 characters.'
+            )
+
+        if not re.search(r'[A-Z]', password):
+            return signup_error(
+                'Password must contain at least one uppercase letter.'
+            )
+
+        if not re.search(r'[a-z]', password):
+            return signup_error(
+                'Password must contain at least one lowercase letter.'
+            )
+
+        if not re.search(r'\d', password):
+            return signup_error(
+                'Password must contain at least one number.'
+            )
+
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]', password):
+            return signup_error(
+                'Password must contain at least one special character.'
+            )
 
         if User.objects.filter(email=email).exists():
             return signup_error(
@@ -135,7 +175,9 @@ def signup(request):
                     email=email,
                     password=make_password(password),
                     role='student',
-                    account_status='active'
+                    account_status='active',
+                    community_guidelines_accepted=True,
+                    consent_accepted_at=timezone.now()
                 )
 
                 AnonymousProfile.objects.create(
@@ -145,8 +187,7 @@ def signup(request):
 
         except IntegrityError:
             return signup_error(
-                'That email or nickname is no longer available. '
-                'Please try again.'
+                'That email or nickname is no longer available. Please try again.'
             )
 
         login(request, user)
@@ -156,7 +197,8 @@ def signup(request):
         'available_names': available_names,
     })
 
-
+def community_guidelines(request):
+    return render(request, 'core/community_guidelines.html')
 
 
 def user_login(request):

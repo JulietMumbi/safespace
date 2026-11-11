@@ -32,6 +32,12 @@ class User(AbstractUser):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
+    community_guidelines_accepted = models.BooleanField(default=False)
+
+    consent_accepted_at = models.DateTimeField(
+    null=True,
+    blank=True
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
