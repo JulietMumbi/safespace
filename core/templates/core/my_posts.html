@@ -1,0 +1,146 @@
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+{% block content %}
+<main class="my-space-page">
+
+    <div class="my-space-header">
+        <a href="{% url 'dashboard' %}" class="back-link">
+            Back to Dashboard
+        </a>
+
+        <h1>Your Space, Your Voice.</h1>
+        <p>A little space to look back at what you've shared with the SafeSpace community.</p>
+    </div>
+
+    <section class="my-space-stats">
+        <div class="my-space-stat">
+            <h2>{{ posts_count }}</h2>
+            <p>Posts shared</p>
+        </div>
+
+        <div class="my-space-stat">
+            <h2>{{ replies_count }}</h2>
+            <p>Replies made</p>
+        </div>
+    </section>
+
+    <section class="my-contributions">
+
+        <div class="contribution-tabs">
+            <button class="contribution-tab active"
+                    type="button"
+                    data-tab="posts">
+                My Posts
+            </button>
+
+            <button class="contribution-tab"
+                    type="button"
+                    data-tab="replies">
+                My Replies
+            </button>
+        </div>
+
+        <div class="contribution-content active" id="posts">
+
+            <div class="contribution-heading">
+                <h2>My Posts</h2>
+                <p>A collection of everything you've shared.</p>
+            </div>
+
+            {% for post in posts %}
+                <article class="my-space-card">
+
+                    <div class="my-space-meta">
+                        <span>{{ post.category }}</span>
+                        <span>{{ post.created_at|date:"d M Y" }}</span>
+                    </div>
+
+                    <h3>{{ post.title }}</h3>
+
+                    <p>{{ post.content|truncatewords:30 }}</p>
+
+                    <div class="my-space-card-footer">
+                        <span>{{ post.reply_count }} replies</span>
+
+                        {% if post.status == 'flagged' %}
+                            <span class="review-status">
+                                Awaiting moderator review
+                            </span>
+                        {% endif %}
+
+                        <a href="{% url 'category_posts' post.category.category_id %}">
+                            View Discussion
+                        </a>
+                    </div>
+
+                </article>
+            {% empty %}
+                <p class="empty-contributions">
+                    You haven't shared any posts yet.
+                </p>
+            {% endfor %}
+
+        </div>
+
+        <div class="contribution-content" id="replies">
+
+            <div class="contribution-heading">
+                <h2>My Replies</h2>
+                <p>Your contributions to conversations in SafeSpace.</p>
+            </div>
+
+            {% for reply in replies %}
+                <article class="my-space-card">
+
+                    <div class="my-space-meta">
+                        <span>{{ reply.post.category }}</span>
+                        <span>{{ reply.created_at|date:"d M Y" }}</span>
+                    </div>
+
+                    <p>{{ reply.content|truncatewords:30 }}</p>
+
+                    <p class="reply-to">
+                        Reply to: {{ reply.post.title }}
+                    </p>
+
+                    <div class="my-space-card-footer">
+                        <a href="{% url 'category_posts' reply.post.category.category_id %}">
+                            View Discussion
+                        </a>
+                    </div>
+
+                </article>
+            {% empty %}
+                <p class="empty-contributions">
+                    You haven't contributed any replies yet.
+                </p>
+            {% endfor %}
+
+        </div>
+
+    </section>
+    
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.contribution-tab');
+    const contents = document.querySelectorAll('.contribution-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const target = this.dataset.tab;
+
+            tabs.forEach(item => item.classList.remove('active'));
+            contents.forEach(item => item.classList.remove('active'));
+
+            this.classList.add('active');
+            document.getElementById(target).classList.add('active');
+        });
+    });
+});
+</script>
+
+{% endblock %}

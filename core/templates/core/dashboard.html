@@ -37,25 +37,35 @@
             </p>
         </section>
 
-        <section class="dashboard-actions">
+        
+<section class="dashboard-actions">
 
-            <a href="{% url 'create_post' %}" class="dashboard-action primary-action">
-                <span class="action-icon">+</span>
-                <div>
-                    <h3>Share Something</h3>
-                    <p>Have something on your mind? Share it anonymously.</p>
-                </div>
-            </a>
+    <a href="{% url 'create_post' %}" class="dashboard-action primary-action">
+        <span class="action-icon">+</span>
+        <div>
+            <h3>Share Something</h3>
+            <p>Have something on your mind? Share it anonymously.</p>
+        </div>
+    </a>
 
-            <a href="#categories" class="dashboard-action secondary-action">
-                <span class="action-icon">→</span>
-                <div>
-                    <h3>Explore Discussions</h3>
-                    <p>Read what others are sharing and join the conversation.</p>
-                </div>
-            </a>
+    <a href="#categories" class="dashboard-action secondary-action">
+        <span class="action-icon">→</span>
+        <div>
+            <h3>Explore Discussions</h3>
+            <p>Read what others are sharing and join the conversation.</p>
+        </div>
+    </a>
 
-        </section>
+    <a href="{% url 'my_posts' %}" class="dashboard-action secondary-action">
+        <span class="action-icon">♡</span>
+        <div>
+            <h3>My Space</h3>
+            <p>View your posts, replies and personal contributions.</p>
+        </div>
+    </a>
+
+</section>
+
 
         <section class="categories-section" id="categories">
 

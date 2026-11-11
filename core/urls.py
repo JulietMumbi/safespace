@@ -40,5 +40,7 @@ path(
     name='delete_post'
 ),
 
+path('my-posts/', views.my_posts, name='my_posts'),
+
 ]
 

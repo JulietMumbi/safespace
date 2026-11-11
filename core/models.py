@@ -66,7 +66,6 @@ class Post(models.Model):
         ('active', 'Active'),
         ('flagged', 'Flagged'),
         ('removed', 'Removed'),
-        ('archived', 'Archived'),
     ]
 
     post_id = models.BigAutoField(primary_key=True)
@@ -92,10 +91,6 @@ class Post(models.Model):
         default='active'
     )
 
-    archived_at = models.DateTimeField(
-        null=True,
-        blank=True
-    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -103,36 +98,6 @@ class Post(models.Model):
     def __str__(self):
         return self.title
 
-
-class PostArchiveLog(models.Model):
-
-    ACTION_CHOICES = [
-        ('archived', 'Archived'),
-        ('restored', 'Restored'),
-    ]
-
-    post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
-        related_name='archive_logs'
-    )
-
-    action = models.CharField(
-        max_length=20,
-        choices=ACTION_CHOICES
-    )
-
-    performed_by = models.ForeignKey(
-        'User',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'{self.post.title} - {self.action}'
 
 
 

@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .toxicity import contains_self_harm_concern
 from .toxicity import load_toxicity_model, contains_disguised_abuse
@@ -846,3 +847,39 @@ def delete_post(request, post_id):
     return redirect(
         reverse('category_posts', args=[category_id])
     )
+    
+
+@login_required
+def my_posts(request):
+    anonymous_profile = request.user.anonymousprofile
+
+    posts = (
+        Post.objects
+        .filter(author=anonymous_profile)
+        .exclude(status__in=['removed', 'archived'])
+        .select_related('category')
+        .annotate(
+            reply_count=Count(
+                'replies',
+                filter=Q(replies__status='active')
+            )
+        )
+        .order_by('-created_at')
+    )
+
+    replies = (
+        Reply.objects
+        .filter(author=anonymous_profile, status='active')
+        .select_related('post', 'post__category')
+        .order_by('-created_at')
+    )
+
+    posts_count = posts.count()
+    replies_count = replies.count()
+
+    return render(request, 'core/my_posts.html', {
+        'posts': posts,
+        'replies': replies,
+        'posts_count': posts_count,
+        'replies_count': replies_count,
+    })
