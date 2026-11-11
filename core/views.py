@@ -4,6 +4,7 @@ from django.db.models import Count, Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.urls import reverse
+from .toxicity import contains_self_harm_concern
 from .toxicity import load_toxicity_model, contains_disguised_abuse
 from django.db import transaction, IntegrityError
 from django.contrib.auth.hashers import make_password
@@ -180,10 +181,10 @@ def user_login(request):
             # Redirect users according to their roles
             # Redirect users according to their roles
             if user.role == 'moderator':
-             return redirect('moderation_dashboard')
+                return redirect('moderation_dashboard')
 
             else:
-              return redirect('dashboard')
+                return redirect('dashboard')
 
         return render(request, 'core/login.html', {
             'error': 'Invalid email or password.'
@@ -263,10 +264,14 @@ def create_post(request):
             )
 
         # Flag the post if either check detects a concern.
-        should_flag = disguised_abuse or prediction == 1
+        self_harm_concern = contains_self_harm_concern(text_to_check)
 
+        should_flag = (
+            disguised_abuse
+            or self_harm_concern
+            or prediction == 1
+        )
         anonymous_profile = request.user.anonymousprofile
-
         Post.objects.create(
             author=anonymous_profile,
             category=category,

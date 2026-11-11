@@ -592,6 +592,7 @@ input {
     background: #ffffff;
     border: 1px solid #e2e6df;
     border-radius: 14px;
+     
 }
 
 .post-meta {
@@ -2123,3 +2124,4 @@ input {
 .cancel-button:hover {
     background: #eeeeee;
 }
+
