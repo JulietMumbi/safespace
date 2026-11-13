@@ -5,29 +5,11 @@
 {% block content %}
 <div class="moderation-layout">
 
-    <aside class="moderation-sidebar">
-        <div class="sidebar-brand">
-            <h2>SafeSpace</h2>
-            <p>Moderation Panel</p>
-        </div>
-
-        <nav class="moderation-navigation">
-            <a href="{% url 'moderation_dashboard' %}">Overview</a>
-                         <a href="{% url 'community_insights' %}">
-    Community Insights
-</a>
-            <a href="{% url 'moderation_dashboard' %}?status=pending">User Reports</a>
-            <a href="{% url 'moderation_dashboard' %}?status=ai_flagged">AI-Flagged Content</a>
-            <a href="{% url 'removed_content' %}">Removed Content</a>
-            <a href="{% url 'account_moderation' %}" class="active">Account Moderation</a>
-            <a href="{% url 'home' %}">Home</a>
-            <a href="{% url 'logout' %}">Logout</a>
-        </nav>
-    </aside>
+    {% include 'core/moderation_sidebar.html' %}
+       
 
     <main class="moderation-main">
-
-        <header class="moderation-header">
+{% include 'core/moderation_header.html' %}
             <p class="header-label">SAFESPACE MODERATION</p>
             <h1>Account Moderation</h1>
             <p>
@@ -232,7 +214,9 @@
                 {% endif %}
             </div>
         {% endif %}
-
+{% include 'core/moderation_footer.html' %}
     </main>
 </div>
+<div class="sidebar-backdrop"></div>
+<script src="{% static 'core/js/moderation-layout.js' %}"></script>
 {% endblock %}

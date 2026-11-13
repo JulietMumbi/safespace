@@ -1,0 +1,54 @@
+
+<header class="moderation-topbar">
+
+    <div class="topbar-left">
+
+        <button type="button"
+                class="sidebar-toggle"
+                id="sidebarToggle"
+                aria-label="Toggle sidebar"
+                aria-expanded="true">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div class="topbar-heading">
+            <p class="moderation-eyebrow">SAFESPACE WORKSPACE</p>
+
+            {% if request.resolver_match.url_name == 'moderation_dashboard' %}
+                {% if request.GET.status == 'pending' %}
+                    <h1>User Reports</h1>
+                {% elif request.GET.status == 'ai_flagged' %}
+                    <h1>AI-Flagged Posts</h1>
+                {% elif request.GET.status == 'resolved' %}
+                    <h1>Resolved Reports</h1>
+                {% elif request.GET.status == 'removed' %}
+                    <h1>Removed Content</h1>
+                {% else %}
+                    <h1>Overview</h1>
+                {% endif %}
+            {% elif request.resolver_match.url_name == 'removed_content' %}
+                <h1>Removed Content</h1>
+            {% elif request.resolver_match.url_name == 'account_moderation' %}
+                <h1>Account Moderation</h1>
+            {% elif request.resolver_match.url_name == 'community_insights' %}
+                <h1>Community Insights</h1>
+            {% elif request.resolver_match.url_name == 'moderation_report_detail' %}
+                <h1>Report Details</h1>
+            {% else %}
+                <h1>Moderation</h1>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <div class="moderator-profile">
+        <div class="moderator-avatar">M</div>
+        <div>
+            <strong>Moderator</strong>
+            <small>SafeSpace team</small>
+        </div>
+    </div>
+
+</header>

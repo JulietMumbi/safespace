@@ -1,0 +1,91 @@
+
+{% load static %}
+
+<aside class="moderation-sidebar" id="moderationSidebar">
+
+    <div class="moderation-brand">
+        <div class="brand-mark">S</div>
+        <div class="brand-copy">
+            <strong>SafeSpace</strong>
+            <small>Moderation workspace</small>
+        </div>
+    </div>
+
+    <div class="sidebar-label">WORKSPACE</div>
+
+    <nav class="moderation-nav">
+
+        <a href="{% url 'moderation_dashboard' %}"
+           class="moderation-nav-link {% if request.resolver_match.url_name == 'moderation_dashboard' and not request.GET.status %}active{% endif %}"
+           title="Overview">
+            <span class="nav-symbol">⌂</span>
+            <span class="nav-text">Overview</span>
+        </a>
+
+        <a href="{% url 'moderation_dashboard' %}?status=pending"
+           class="moderation-nav-link {% if request.resolver_match.url_name == 'moderation_dashboard' and request.GET.status == 'pending' %}active{% endif %}"
+           title="User Reports">
+            <span class="nav-symbol">▤</span>
+            <span class="nav-text">User Reports</span>
+        </a>
+
+        <a href="{% url 'moderation_dashboard' %}?status=ai_flagged"
+           class="moderation-nav-link {% if request.resolver_match.url_name == 'moderation_dashboard' and request.GET.status == 'ai_flagged' %}active{% endif %}"
+           title="AI-Flagged Posts">
+            <span class="nav-symbol">⌁</span>
+            <span class="nav-text">AI-Flagged Posts</span>
+        </a>
+
+        <a href="{% url 'moderation_dashboard' %}?status=resolved"
+           class="moderation-nav-link {% if request.resolver_match.url_name == 'moderation_dashboard' and request.GET.status == 'resolved' %}active{% endif %}"
+           title="Resolved Reports">
+            <span class="nav-symbol">✓</span>
+            <span class="nav-text">Resolved Reports</span>
+        </a>
+
+        <a href="{% url 'removed_content' %}"
+           class="moderation-nav-link {% if request.resolver_match.url_name == 'removed_content' %}active{% endif %}"
+           title="Removed Content">
+            <span class="nav-symbol">▧</span>
+            <span class="nav-text">Removed Content</span>
+        </a>
+
+        <a href="{% url 'account_moderation' %}"
+           class="moderation-nav-link {% if request.resolver_match.url_name == 'account_moderation' %}active{% endif %}"
+           title="Account Moderation">
+            <span class="nav-symbol">♙</span>
+            <span class="nav-text">Account Moderation</span>
+        </a>
+
+        <a href="{% url 'community_insights' %}"
+           class="moderation-nav-link {% if request.resolver_match.url_name == 'community_insights' %}active{% endif %}"
+           title="Community Insights">
+            <span class="nav-symbol">▥</span>
+            <span class="nav-text">Community Insights</span>
+        </a>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+        <div class="sidebar-role">
+            <span class="role-indicator"></span>
+            <div class="sidebar-role-copy">
+                <strong>Moderator</strong>
+                <small>SafeSpace team</small>
+            </div>
+        </div>
+
+        <a href="{% url 'home' %}" class="moderation-nav-link" title="Visit homepage">
+            <span class="nav-symbol">↗</span>
+            <span class="nav-text">Visit Homepage</span>
+        </a>
+
+        <a href="{% url 'logout' %}" class="moderation-nav-link" title="Logout">
+            <span class="nav-symbol">⇥</span>
+            <span class="nav-text">Logout</span>
+        </a>
+
+    </div>
+
+</aside>
