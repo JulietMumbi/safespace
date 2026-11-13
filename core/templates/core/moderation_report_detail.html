@@ -33,8 +33,7 @@
 
             <p>
                 <strong>Reported by:</strong>
-                {{ report.reporter.email|default:"User unavailable" }}
-            </p>
+{{ report.reporter.anonymousprofile.anonymous_name|default:"No anonymous profile found" }}            </p>
 
             <p>
                 <strong>Reason:</strong>

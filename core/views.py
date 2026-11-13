@@ -813,7 +813,16 @@ def moderation_dashboard(request):
         elif action == 'dismiss':
             report.status = 'dismissed'
 
-        report.save(update_fields=['status'])
+        report.reviewed_at = timezone.now()
+        report.reviewed_by = request.user
+        report.moderator_notes = notes
+
+        report.save(update_fields=[
+    'status',
+    'reviewed_at',
+    'reviewed_by',
+    'moderator_notes',
+])
 
         moderation_action = ModerationAction.objects.create(
             moderator=request.user,
@@ -834,6 +843,7 @@ def moderation_dashboard(request):
         return redirect('moderation_dashboard')
 
     # Report counts
+    resolved_count = Report.objects.filter(status='resolved').count()
     pending_count = Report.objects.filter(status='pending').count()
     dismissed_count = Report.objects.filter(status='dismissed').count()
 
@@ -952,6 +962,7 @@ def moderation_dashboard(request):
         'overview',
         'pending',
         'dismissed',
+        'resolved',
         'removed',
         'ai_flagged',
     ]
@@ -969,7 +980,7 @@ def moderation_dashboard(request):
         'reply__post',
     ).order_by('-created_at')
 
-    if selected_filter in ['pending', 'dismissed']:
+    if selected_filter in ['pending', 'dismissed', 'resolved']:
         reports = reports.filter(status=selected_filter)
     else:
         reports = reports.none()
@@ -1005,6 +1016,7 @@ def moderation_dashboard(request):
         'dismissed_count': dismissed_count,
         'removed_count': removed_count,
         'removed_posts': removed_posts,
+        'resolved_count': resolved_count,
         'removed_replies': removed_replies,
         'ai_flagged_posts': ai_flagged_posts,
         'ai_flagged_replies': ai_flagged_replies,

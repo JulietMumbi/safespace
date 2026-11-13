@@ -330,6 +330,95 @@
 
             </section>
 
+            {% elif selected_filter == 'resolved' %}
+
+<section class="moderation-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Resolved Reports</h2>
+            <p>Reports where moderators confirmed and removed the reported content.</p>
+        </div>
+
+        <span class="section-count">{{ reports|length }}</span>
+    </div>
+
+    {% for report in reports %}
+
+        <article class="report-list-card">
+
+            <div class="report-card-content">
+
+                <div class="report-card-top">
+                    <span>Report #{{ report.pk }}</span>
+                    <span class="report-status status-resolved">
+                        Content removed
+                    </span>
+                </div>
+
+                <h3>
+                    {% if report.post %}
+                        {{ report.post.title }}
+                    {% elif report.reply %}
+                        Reported reply
+                    {% else %}
+                        Content unavailable
+                    {% endif %}
+                </h3>
+
+                <p>
+                    <strong>Reason:</strong>
+                    {{ report.reason|truncatechars:120 }}
+                </p>
+
+                <p>
+                    <strong>Decision:</strong> Content removed
+                </p>
+
+                <p>
+                    <strong>Reviewed by:</strong>
+                    {% if report.reviewed_by %}
+                        {{ report.reviewed_by.email }}
+                    {% else %}
+                        Not recorded
+                    {% endif %}
+                </p>
+
+                <p>
+                    <strong>Date reviewed:</strong>
+                    {% if report.reviewed_at %}
+                        {{ report.reviewed_at|date:"d M Y, H:i" }}
+                    {% else %}
+                        Not recorded
+                    {% endif %}
+                </p>
+
+                {% if report.moderator_notes %}
+                    <p>
+                        <strong>Moderator notes:</strong>
+                        {{ report.moderator_notes }}
+                    </p>
+                {% endif %}
+
+                <a href="{% url 'moderation_report_detail' report.pk %}">
+                    View full report
+                </a>
+
+            </div>
+
+        </article>
+
+    {% empty %}
+
+        <div class="empty-moderation-state">
+            <h3>No resolved reports yet</h3>
+            <p>Reports resolved through content removal will appear here.</p>
+        </div>
+
+    {% endfor %}
+
+</section>
+
         {% elif selected_filter == 'removed' %}
 
             <section class="moderation-section">

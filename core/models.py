@@ -187,6 +187,17 @@ class Report(models.Model):
         default='pending'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    reviewed_by = models.ForeignKey(
+    User,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='reviewed_reports'
+)
+
+    moderator_notes = models.TextField(blank=True)
 
     def __str__(self):
         return f"Report #{self.report_id}"
