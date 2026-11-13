@@ -15,12 +15,15 @@
         <a href="{% url 'home' %}" class="home-logo">SafeSpace</a>
 
         <div class="home-nav-links">
+            <a href="#how-it-works">How It Works</a>
             <a href="{% url 'login' %}">Log In</a>
             <a href="{% url 'signup' %}" class="home-nav-button">Sign Up</a>
         </div>
     </nav>
 
     <main>
+
+        <!-- HERO SECTION -->
         <section class="home-hero">
 
             <div class="home-hero-content">
@@ -51,10 +54,193 @@
             </div>
 
         </section>
+
+
+        <!-- HOW IT WORKS -->
+        <section class="home-how-section" id="how-it-works">
+
+            <div class="home-section-heading">
+                <span class="home-eyebrow">GETTING STARTED</span>
+                <h2>How SafeSpace Works</h2>
+                <p>
+                    A simple way to share your experiences,
+                    find understanding and connect with fellow students.
+                </p>
+            </div>
+
+            <div class="home-steps">
+
+                <div class="home-step-card">
+                    <span class="home-step-number">01</span>
+                    <h3>Create Your Space</h3>
+                    <p>
+                        Sign up and choose an anonymous identity.
+                        
+                    </p>
+                </div>
+
+                <div class="home-step-card">
+                    <span class="home-step-number">02</span>
+                    <h3>Share Your Thoughts</h3>
+                    <p>
+                        Start a discussion, choose a category and express
+                        what is on your mind in a space designed for
+                        respectful conversations.
+                    </p>
+                </div>
+
+                <div class="home-step-card">
+                    <span class="home-step-number">03</span>
+                    <h3>Connect and Support</h3>
+                    <p>
+                        Explore discussions, share thoughtful responses
+                        and offer encouragement to students who may
+                        relate to your experiences.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- WHAT MAKES SAFESPACE DIFFERENT -->
+        <section class="home-features-section" id="about">
+
+            <div class="home-section-heading">
+                <span class="home-eyebrow">A SPACE WITH PURPOSE</span>
+                <h2>More Than Just a Discussion Platform</h2>
+                <p>
+                    SafeSpace brings together features that encourage
+                    meaningful and responsible peer support.
+                </p>
+            </div>
+
+            <div class="home-features-grid">
+
+                <div class="home-feature-card">
+                    <h3>Anonymous Participation</h3>
+                    <p>
+                        Share your experiences using an anonymous
+                        identity without displaying your real name
+                        to fellow students.
+                    </p>
+                </div>
+
+                <div class="home-feature-card">
+                    <h3>Organised Discussions</h3>
+                    <p>
+                        Explore conversations through categories
+                        and participate in discussions that relate
+                        to your experiences.
+                    </p>
+                </div>
+
+                <div class="home-feature-card">
+                    <h3>A Supportive Community</h3>
+                    <p>
+                        Listen, respond and connect with other students
+                        through respectful and understanding conversations.
+                    </p>
+                </div>
+
+                <div class="home-feature-card">
+                    <h3>Community Moderation</h3>
+                    <p>
+                        Reporting tools and content moderation help
+                        maintain a respectful environment for everyone.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SAFETY REMINDER -->
+        <section class="home-safety-section">
+
+            <div class="home-safety-content">
+                <span class="home-eyebrow">A NOTE ON YOUR WELLBEING</span>
+
+                <h2>Your wellbeing matters.</h2>
+
+                <p>
+                    SafeSpace is a peer-support platform where students
+                    can share experiences and encourage one another.
+                    It is not a substitute for professional mental
+                    health care, counselling or emergency support.
+                </p>
+
+                <a href="{% url 'community_guidelines' %}"
+                   class="home-safety-link">
+                    Read our Community Guidelines →
+                </a>
+            </div>
+
+        </section>
+        
+
+
+        <!-- CALL TO ACTION -->
+        <section class="home-cta-section">
+
+            <h2>Sometimes, being heard makes a difference.</h2>
+
+            <p>
+                Your experiences matter. Your voice deserves a space.
+            </p>
+
+            <a href="{% url 'signup' %}" class="home-primary-button">
+                Find Your Space
+            </a>
+
+        </section>
+
     </main>
 
+
+    <!-- FOOTER -->
     <footer class="home-footer">
-        <p>SafeSpace &copy; {% now "Y" %}. A space for student connection and support.</p>
+
+        <div class="home-footer-content">
+
+            <div class="home-footer-brand">
+                <a href="{% url 'home' %}" class="home-logo">
+                    SafeSpace
+                </a>
+
+                <p>
+                    A space for student connection, understanding
+                    and peer support.
+                </p>
+            </div>
+
+            <div class="home-footer-links">
+                <h3>Explore</h3>
+                <a href="{% url 'home' %}">Home</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#about">About SafeSpace</a>
+            </div>
+
+            <div class="home-footer-links">
+                <h3>Get Started</h3>
+                <a href="{% url 'signup' %}">Create an Account</a>
+                <a href="{% url 'login' %}">Log In</a>
+                <a href="{% url 'community_guidelines' %}">
+                    Community Guidelines
+                </a>
+            </div>
+
+        </div>
+
+        <div class="home-footer-bottom">
+            <p>
+                SafeSpace &copy; {% now "Y" %}.
+                A space for student connection and support.
+            </p>
+        </div>
+
     </footer>
 
 </body>
