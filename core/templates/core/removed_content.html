@@ -1,0 +1,174 @@
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+{% block content %}
+<div class="moderation-layout">
+
+    <aside class="moderation-sidebar">
+        <div class="sidebar-brand">
+            <h2>SafeSpace</h2>
+            <p>Moderation Panel</p>
+        </div>
+
+        <nav class="moderation-navigation">
+            <a href="{% url 'moderation_dashboard' %}">Overview</a>
+            <a href="{% url 'moderation_dashboard' %}?status=pending">User Reports</a>
+            <a href="{% url 'moderation_dashboard' %}?status=ai_flagged">AI-Flagged Content</a>
+            <a href="{% url 'removed_content' %}" class="active">Removed Content</a>
+            <a href="{% url 'account_moderation' %}">Account Moderation</a>
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </nav>
+    </aside>
+
+    <main class="moderation-main">
+
+        <header class="moderation-header">
+            <p class="header-label">SAFESPACE MODERATION</p>
+            <h1>Removed Content</h1>
+            <p>
+                Review posts and replies removed following moderator action.
+            </p>
+        </header>
+
+        <section class="moderation-notice">
+            <h3>Removed content record</h3>
+            <p>
+                These entries are retained for moderation records.
+                Removing content does not automatically deactivate
+                the student's account.
+            </p>
+        </section>
+
+        <div class="section-heading">
+            <h2>Removed posts and replies</h2>
+            <span class="section-count">{{ removed_count }}</span>
+        </div>
+
+        <h3>Removed Posts</h3>
+
+   
+
+   {% for post in removed_posts %}
+    <div class="removed-content-card">
+
+        <div class="content-card-top">
+            <span class="removed-content-type">Removed Post</span>
+
+            <span>
+                {% if post.removed_at %}
+                    {{ post.removed_at|date:"d M Y, H:i" }}
+                {% else %}
+                    {{ post.created_at|date:"d M Y, H:i" }}
+                {% endif %}
+            </span>
+        </div>
+
+        <span class="removed-category">
+            {{ post.category.name }}
+        </span>
+
+        <h3>{{ post.title }}</h3>
+
+        <p class="removed-author">
+            Posted by:
+            {{ post.author.anonymous_name|default:"Anonymous student" }}
+        </p>
+
+        <div class="removed-body">
+            {{ post.content|linebreaks }}
+        </div>
+
+        <div class="removed-meta">
+            Original post date:
+            {{ post.created_at|date:"d M Y, H:i" }}
+        </div>
+
+    </div>
+{% empty %}
+    <p class="empty-inline">No removed posts.</p>
+{% endfor %}
+
+             {% if posts_page.has_other_pages %}
+    <div class="moderation-pagination">
+        {% if posts_page.has_previous %}
+            <a href="?posts_page={{ posts_page.previous_page_number }}&replies_page={{ replies_page.number }}">
+                Previous
+            </a>
+        {% endif %}
+
+        <span>
+            Page {{ posts_page.number }} of {{ posts_page.paginator.num_pages }}
+        </span>
+
+        {% if posts_page.has_next %}
+            <a href="?posts_page={{ posts_page.next_page_number }}&replies_page={{ replies_page.number }}">
+                Next
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+
+        <h3>Removed Replies</h3>
+
+{% for reply in removed_replies %}
+    <div class="removed-content-card">
+
+        <div class="content-card-top">
+            <span class="removed-content-type">Removed Reply</span>
+
+            <span>
+                {% if reply.removed_at %}
+                    {{ reply.removed_at|date:"d M Y, H:i" }}
+                {% else %}
+                    {{ reply.created_at|date:"d M Y, H:i" }}
+                {% endif %}
+            </span>
+        </div>
+
+        <h3>{{ reply.post.title }}</h3>
+
+        <p class="removed-author">
+            Replied by:
+            {{ reply.author.anonymous_name|default:"Anonymous student" }}
+        </p>
+
+        <div class="removed-body">
+            {{ reply.content|linebreaks }}
+        </div>
+
+        <div class="removed-meta">
+            Original reply date:
+            {{ reply.created_at|date:"d M Y, H:i" }}
+        </div>
+
+    </div>
+{% empty %}
+    <p class="empty-inline">No removed replies.</p>
+{% endfor %}
+
+        
+        {% if replies_page.has_other_pages %}
+            <div class="moderation-pagination">
+                {% if replies_page.has_previous %}
+                    <a href="?posts_page={{ posts_page.number }}&replies_page={{ replies_page.previous_page_number }}">
+                        Previous
+                    </a>
+                {% endif %}
+
+                <span>
+                    Page {{ replies_page.number }} of {{ replies_page.paginator.num_pages }}
+                </span>
+
+                {% if replies_page.has_next %}
+                    <a href="?posts_page={{ posts_page.number }}&replies_page={{ replies_page.next_page_number }}">
+                        Next
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </main>
+</div>
+{% endblock %}

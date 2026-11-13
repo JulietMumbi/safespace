@@ -1,0 +1,235 @@
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+{% block content %}
+<div class="moderation-layout">
+
+    <aside class="moderation-sidebar">
+        <div class="sidebar-brand">
+            <h2>SafeSpace</h2>
+            <p>Moderation Panel</p>
+        </div>
+
+        <nav class="moderation-navigation">
+            <a href="{% url 'moderation_dashboard' %}">Overview</a>
+            <a href="{% url 'moderation_dashboard' %}?status=pending">User Reports</a>
+            <a href="{% url 'moderation_dashboard' %}?status=ai_flagged">AI-Flagged Content</a>
+            <a href="{% url 'removed_content' %}">Removed Content</a>
+            <a href="{% url 'account_moderation' %}" class="active">Account Moderation</a>
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </nav>
+    </aside>
+
+    <main class="moderation-main">
+
+        <header class="moderation-header">
+            <p class="header-label">SAFESPACE MODERATION</p>
+            <h1>Account Moderation</h1>
+            <p>
+                Review confirmed violations and manage accounts
+                that repeatedly breach community guidelines.
+            </p>
+        </header>
+
+        {% if messages %}
+            <div class="moderation-messages">
+                {% for message in messages %}
+                    <div class="moderation-message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="moderation-notice">
+            <h3>Account violation policy</h3>
+            <p>
+                Students with {{ risk_threshold }} or more confirmed
+                violations are marked as at risk. Only content removed
+                following moderator review counts as a confirmed violation.
+                Review the history before taking account-level action.
+            </p>
+        </section>
+
+        <div class="section-heading">
+            <div>
+                <h2>Accounts with confirmed violations</h2>
+                <p>Review each student's moderation history.</p>
+            </div>
+            <span class="section-count">{{ accounts.paginator.count }}</span>
+        </div>
+
+        {% for student in accounts %}
+            <div class="account-user-card">
+
+                <div class="account-user-header">
+                    <div>
+                        <h3>
+                            {% if student.anonymousprofile %}
+                                {{ student.anonymousprofile.anonymous_name }}
+                            {% else %}
+                                Anonymous student
+                            {% endif %}
+                        </h3>
+                        <p>
+                            Account created:
+                            {{ student.created_at|date:"d M Y" }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <span class="account-status-label">
+                            {{ student.get_account_status_display }}
+                        </span>
+
+                        {% if student.violation_count >= risk_threshold %}
+                            <span class="risk-badge">At Risk</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="account-violation-summary">
+                    <strong>
+                        {{ student.violation_count }}
+                        confirmed violation{{ student.violation_count|pluralize }}
+                    </strong>
+                </div>
+
+                <details class="violation-history-details">
+                    <summary>
+                        View violation history
+                    </summary>
+
+                    {% for violation in student.account_violations.all %}
+                        <div class="account-violation-item">
+
+                            <div class="content-card-top">
+                                <span>{{ violation.get_content_type_display }}</span>
+                                <span>
+                                    {{ violation.created_at|date:"d M Y, H:i" }}
+                                </span>
+                            </div>
+
+                            <p>
+                                <strong>Discussion:</strong>
+                                {{ violation.content_title|default:"Reply or post" }}
+                            </p>
+
+                            <div class="moderation-post-content">
+                                {{ violation.content_excerpt|linebreaks }}
+                            </div>
+
+                            <p>
+                                <strong>Reason for removal:</strong>
+                                {{ violation.reason }}
+                            </p>
+
+                        </div>
+                    {% empty %}
+                        <p class="empty-inline">No violation history available.</p>
+                    {% endfor %}
+                </details>
+
+                <h4>Account Action</h4>
+
+                <form method="POST" class="account-action-form">
+                    {% csrf_token %}
+
+                    <input type="hidden"
+                           name="target_user_id"
+                           value="{{ student.pk }}">
+
+                    <textarea name="notes"
+                              rows="2"
+                              placeholder="Reason or moderator notes (optional)..."></textarea>
+
+                    <div class="moderation-buttons">
+
+                        <button type="submit"
+                                name="action"
+                                value="warning"
+                                class="warning-button">
+                            Issue Warning
+                        </button>
+
+                        <button type="submit"
+                                name="action"
+                                value="suspend"
+                                class="suspend-button"
+                                onclick="return confirm('Suspend this student account?');">
+                            Suspend Account
+                        </button>
+
+                        <button type="submit"
+                                name="action"
+                                value="deactivate"
+                                class="remove-button"
+                                onclick="return confirm('Deactivate this student account?');">
+                            Deactivate Account
+                        </button>
+
+                        {% if student.account_status != 'active' %}
+                            <button type="submit"
+                                    name="action"
+                                    value="restore"
+                                    class="dismiss-button">
+                                Restore Account
+                            </button>
+                        {% endif %}
+
+                    </div>
+                </form>
+
+                <details class="account-action-history-details">
+                    <summary>Previous account actions</summary>
+
+                    {% for account_action in student.account_moderation_actions.all %}
+                        <div class="account-action-history">
+                            <strong>
+                                {{ account_action.get_action_type_display }}
+                            </strong>
+                            — {{ account_action.created_at|date:"d M Y, H:i" }}
+
+                            <p>Moderator: SafeSpace Moderator</p>
+
+                            {% if account_action.notes %}
+                                <p>Notes: {{ account_action.notes }}</p>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <p class="empty-inline">
+                            No account-level actions have been recorded.
+                        </p>
+                    {% endfor %}
+                </details>
+
+            </div>
+
+        {% empty %}
+            <div class="empty-moderation-state">
+                <h3>No accounts to review</h3>
+                <p>No students currently have confirmed violations.</p>
+            </div>
+        {% endfor %}
+
+        {% if page_obj.has_other_pages %}
+            <div class="moderation-pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                {% endif %}
+
+                <span>
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </main>
+</div>
+{% endblock %}

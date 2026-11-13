@@ -37,6 +37,54 @@
             </p>
         </section>
 
+
+{% if account_at_risk %}
+    <div class="account-risk-notice">
+        <h3>Important Account Notice</h3>
+        <p>
+            Your account has received {{ confirmed_violation_count }}
+            confirmed content violations. Your account is now at risk
+            of further moderation action. Please review the Community
+            Guidelines and ensure your future contributions follow them.
+        </p>
+    </div>
+{% endif %}
+
+{% if account_warning_actions %}
+    <section class="account-warning-history">
+        <h3>Important: Moderator Warning</h3>
+
+        <p>
+            A moderator has issued a warning on your account.
+            Please read the message below and acknowledge it.
+        </p>
+
+        {% for warning in account_warning_actions %}
+            <div class="account-warning-item">
+                <p>
+                    {{ warning.notes|default:"A moderator has issued a warning on your account. Please review the Community Guidelines." }}
+                </p>
+
+                <small>
+                    Issued {{ warning.created_at|date:"d M Y, H:i" }}
+                </small>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden"
+                           name="acknowledge_warning_id"
+                           value="{{ warning.pk }}">
+
+                    <button type="submit" class="warning-button">
+                        Acknowledge Warning
+                    </button>
+                </form>
+            </div>
+        {% endfor %}
+    </section>
+{% endif %}
+
+
         
 <section class="dashboard-actions">
 

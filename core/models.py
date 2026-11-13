@@ -250,3 +250,80 @@ class FilterRule(models.Model):
 
     def __str__(self):
         return self.keyword
+    
+    
+class AccountViolation(models.Model):
+    CONTENT_TYPE_CHOICES = [
+        ('post', 'Post'),
+        ('reply', 'Reply'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='account_violations'
+    )
+
+    moderation_action = models.OneToOneField(
+        ModerationAction,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='account_violation'
+    )
+
+    content_type = models.CharField(
+        max_length=10,
+        choices=CONTENT_TYPE_CHOICES
+    )
+
+    content_title = models.CharField(
+        max_length=200,
+        blank=True
+    )
+
+    content_excerpt = models.TextField()
+
+    reason = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Violation by {self.user.email}"
+
+
+class AccountModerationAction(models.Model):
+    ACTION_CHOICES = [
+        ('warning', 'Warning'),
+        ('suspend', 'Suspend Account'),
+        ('deactivate', 'Deactivate Account'),
+        ('restore', 'Restore Account'),
+    ]
+
+    target_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='account_moderation_actions'
+    )
+
+    moderator = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='issued_account_actions'
+    )
+
+    action_type = models.CharField(
+        max_length=20,
+        choices=ACTION_CHOICES
+    )
+
+    notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    acknowledged_at = models.DateTimeField(
+    null=True,
+    blank=True
+)
+
+    def __str__(self):
+        return f"{self.action_type} - {self.target_user.email}"

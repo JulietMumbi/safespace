@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Max, Prefetch
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -21,6 +21,8 @@ from .models import (
     Reply,
     Report,
     ModerationAction,
+    AccountViolation,
+    AccountModerationAction,
 )
 import random
 import re
@@ -247,10 +249,50 @@ def dashboard(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
+    # Allow students to acknowledge their warnings.
+    if request.method == 'POST':
+        warning_id = request.POST.get('acknowledge_warning_id')
+
+        if warning_id and warning_id.isdigit():
+            warning = AccountModerationAction.objects.filter(
+                pk=int(warning_id),
+                target_user=request.user,
+                action_type='warning',
+                acknowledged_at__isnull=True
+            ).first()
+
+            if warning:
+                warning.acknowledged_at = timezone.now()
+                warning.save(update_fields=['acknowledged_at'])
+
+                messages.success(
+                    request,
+                    'Your acknowledgement has been recorded.'
+                )
+
+        return redirect('dashboard')
+
     categories = Category.objects.all()
 
+    confirmed_violation_count = AccountViolation.objects.filter(
+        user=request.user
+    ).count()
+
+    account_at_risk = (
+        confirmed_violation_count >= AT_RISK_THRESHOLD
+    )
+
+    account_warning_actions = AccountModerationAction.objects.filter(
+        target_user=request.user,
+        action_type='warning',
+        acknowledged_at__isnull=True
+    ).order_by('-created_at')
+
     return render(request, 'core/dashboard.html', {
-        'categories': categories
+        'categories': categories,
+        'confirmed_violation_count': confirmed_violation_count,
+        'account_at_risk': account_at_risk,
+        'account_warning_actions': account_warning_actions,
     })
 
 
@@ -566,6 +608,42 @@ def category_posts(request, category_id):
     })
 
 
+AT_RISK_THRESHOLD = 3
+
+
+def record_confirmed_violation(moderation_action, target):
+    """
+    Record one confirmed violation after a moderator removes content.
+    AI flags and unreviewed reports are not counted.
+    """
+
+    if isinstance(target, Post):
+        content_type = 'post'
+        content_title = target.title
+        content_excerpt = target.content
+
+    elif isinstance(target, Reply):
+        content_type = 'reply'
+        content_title = target.post.title
+        content_excerpt = target.content
+
+    else:
+        return
+
+    AccountViolation.objects.get_or_create(
+        moderation_action=moderation_action,
+        defaults={
+            'user': target.author.user,
+            'content_type': content_type,
+            'content_title': content_title,
+            'content_excerpt': content_excerpt,
+            'reason': (
+                moderation_action.reason
+                or 'Content removed by a moderator.'
+            ),
+        }
+    )
+
 
 def moderation_dashboard(request):
     if not request.user.is_authenticated:
@@ -619,12 +697,15 @@ def moderation_dashboard(request):
 
             reply.save(update_fields=['status'])
 
-            ModerationAction.objects.create(
+            moderation_action = ModerationAction.objects.create(
                 moderator=request.user,
                 reply=reply,
                 action_type=action,
                 reason=notes or f'AI-flagged reply {action}d by moderator.',
             )
+
+            if action == 'remove':
+                record_confirmed_violation(moderation_action, reply)
 
             messages.success(request, success_message)
             return redirect('/moderation-dashboard/?status=ai_flagged')
@@ -662,12 +743,15 @@ def moderation_dashboard(request):
 
             post.save(update_fields=['status'])
 
-            ModerationAction.objects.create(
+            moderation_action = ModerationAction.objects.create(
                 moderator=request.user,
                 post=post,
                 action_type=action,
                 reason=notes or f'AI-flagged post {action}d by moderator.',
             )
+
+            if action == 'remove':
+                record_confirmed_violation(moderation_action, post)
 
             messages.success(request, success_message)
             return redirect('/moderation-dashboard/?status=ai_flagged')
@@ -719,20 +803,23 @@ def moderation_dashboard(request):
 
             target.status = 'removed'
             target.save(update_fields=['status'])
-            report.status = 'removed'
+            report.status = 'resolved'
 
         elif action == 'dismiss':
             report.status = 'dismissed'
 
         report.save(update_fields=['status'])
 
-        ModerationAction.objects.create(
+        moderation_action = ModerationAction.objects.create(
             moderator=request.user,
             post=report.post,
             reply=report.reply,
             action_type=action,
             reason=notes or f'Report {action} by moderator.',
         )
+
+        if action == 'remove':
+            record_confirmed_violation(moderation_action, target)
 
         messages.success(
             request,
@@ -823,7 +910,19 @@ def moderation_dashboard(request):
         if selected_filter == 'ai_flagged'
         else Reply.objects.none()
     )
-
+    at_risk_count = (
+    User.objects
+    .filter(role='student')
+    .annotate(
+        violation_count=Count(
+            'account_violations',
+            distinct=True
+        )
+    )
+    .filter(violation_count__gte=AT_RISK_THRESHOLD)
+    .count()
+)
+    
     context = {
         'reports': reports,
         'pending_count': pending_count,
@@ -837,6 +936,13 @@ def moderation_dashboard(request):
         'ai_flagged_post_count': ai_flagged_post_count,
         'ai_flagged_reply_count': ai_flagged_reply_count,
         'selected_filter': selected_filter,
+        'at_risk_count': AccountViolation.objects.values(
+            'user'
+        ).annotate(
+            total_violations=Count('user')
+        ).filter(
+            total_violations__gte=AT_RISK_THRESHOLD
+        ).count(),
     }
 
     return render(
@@ -943,3 +1049,170 @@ def my_posts(request):
         'posts_count': posts_count,
         'replies_count': replies_count,
     })
+
+
+def removed_content(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if not (
+        request.user.is_superuser
+        or request.user.role == 'moderator'
+    ):
+        return HttpResponseForbidden(
+            'You are not authorized to access this page.'
+        )
+
+    removed_posts = (
+        Post.objects
+        .filter(status='removed')
+        .select_related('author', 'category')
+        .annotate(
+            removed_at=Max(
+                'moderation_actions__created_at',
+                filter=Q(moderation_actions__action_type='remove')
+            )
+        )
+        .order_by('-removed_at', '-created_at')
+    )
+
+    removed_replies = (
+        Reply.objects
+        .filter(status='removed')
+        .select_related('author', 'post', 'post__category')
+        .annotate(
+            removed_at=Max(
+                'moderation_actions__created_at',
+                filter=Q(moderation_actions__action_type='remove')
+            )
+        )
+        .order_by('-removed_at', '-created_at')
+    )
+
+    # Paginate each section independently.
+    posts_page = Paginator(removed_posts, 10).get_page(
+        request.GET.get('posts_page', 1)
+    )
+
+    replies_page = Paginator(removed_replies, 10).get_page(
+        request.GET.get('replies_page', 1)
+    )
+
+    return render(request, 'core/removed_content.html', {
+        'removed_posts': posts_page,
+        'removed_replies': replies_page,
+        'posts_page': posts_page,
+        'replies_page': replies_page,
+        'removed_count': removed_posts.count() + removed_replies.count(),
+    })
+
+
+def account_moderation(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if not (
+        request.user.is_superuser
+        or request.user.role == 'moderator'
+    ):
+        return HttpResponseForbidden(
+            'You are not authorized to access this page.'
+        )
+
+    if request.method == 'POST':
+        target_user_id = request.POST.get('target_user_id')
+        action = request.POST.get('action')
+        notes = request.POST.get('notes', '').strip()
+
+        target_user = get_object_or_404(
+            User,
+            pk=target_user_id,
+            role='student',
+            is_superuser=False
+        )
+
+        if target_user == request.user:
+            messages.error(
+                request,
+                'You cannot moderate your own account.'
+            )
+            return redirect('account_moderation')
+
+        valid_actions = [
+            'warning',
+            'suspend',
+            'deactivate',
+            'restore',
+        ]
+
+        if action not in valid_actions:
+            messages.error(request, 'Invalid account action.')
+            return redirect('account_moderation')
+
+        if action == 'warning':
+            success_message = 'Warning issued successfully.'
+
+        elif action == 'suspend':
+            target_user.account_status = 'suspended'
+            target_user.save(update_fields=['account_status'])
+            success_message = 'Student account suspended.'
+
+        elif action == 'deactivate':
+            target_user.account_status = 'deactivated'
+            target_user.save(update_fields=['account_status'])
+            success_message = 'Student account deactivated.'
+
+        else:
+            target_user.account_status = 'active'
+            target_user.save(update_fields=['account_status'])
+            success_message = 'Student account restored.'
+
+        AccountModerationAction.objects.create(
+            target_user=target_user,
+            moderator=request.user,
+            action_type=action,
+            notes=notes
+        )
+
+        messages.success(request, success_message)
+
+        return redirect('account_moderation')
+
+    accounts = User.objects.filter(
+        role='student',
+        is_superuser=False,
+        account_violations__isnull=False
+    ).annotate(
+        violation_count=Count(
+            'account_violations',
+            distinct=True
+        )
+    ).prefetch_related(
+        'account_violations',
+        'account_moderation_actions'
+    ).order_by('-violation_count', 'email')
+
+    at_risk_count = accounts.filter(
+        account_violations__isnull=False
+    ).annotate(
+        total_violations=Count(
+            'account_violations',
+            distinct=True
+        )
+    ).filter(
+        total_violations__gte=AT_RISK_THRESHOLD
+    ).count()
+
+    paginator = Paginator(accounts, 10)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    return render(
+        request,
+        'core/account_moderation.html',
+        {
+            'accounts': page_obj,
+            'page_obj': page_obj,
+            'at_risk_count': at_risk_count,
+            'risk_threshold': AT_RISK_THRESHOLD,
+        }
+    )

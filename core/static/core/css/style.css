@@ -3041,3 +3041,282 @@ input {
         transform: none;
     }
 }
+
+
+/* =================================
+   ACCOUNT AND REMOVED CONTENT PAGES
+================================= */
+
+.moderation-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin: 22px 0 35px;
+    color: #666;
+    font-size: 13px;
+}
+
+.moderation-pagination a {
+    color: #263F35;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.moderation-pagination a:hover {
+    color: #78977A;
+}
+
+.account-user-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E8E2;
+    border-radius: 10px;
+    padding: 23px;
+    margin-bottom: 22px;
+}
+
+.account-user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.account-user-header h3 {
+    color: #263F35;
+    margin: 0 0 7px;
+    overflow-wrap: anywhere;
+}
+
+.account-user-header p,
+.account-action-history {
+    color: #777;
+    font-size: 13px;
+}
+
+.account-status-label {
+    display: inline-block;
+    background: #EAF0E7;
+    color: #263F35;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.risk-badge {
+    display: inline-block;
+    background: #F8E5E3;
+    color: #893B36;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+.account-violation-summary {
+    color: #A64B45;
+    margin: 18px 0;
+    font-size: 14px;
+}
+
+.account-violation-item {
+    background: #F7F5EF;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 12px 0;
+}
+
+.account-user-card h4 {
+    color: #263F35;
+    margin: 22px 0 12px;
+}
+
+.account-action-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #D5DCD3;
+    border-radius: 7px;
+    padding: 11px;
+    font: inherit;
+    resize: vertical;
+    margin-bottom: 12px;
+}
+
+.warning-button,
+.suspend-button {
+    border: none;
+    border-radius: 7px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.warning-button {
+    background: #FFF1D6;
+    color: #8A641C;
+}
+
+.suspend-button {
+    background: #E8DCCB;
+    color: #60472E;
+}
+
+.account-risk-notice {
+    background: #F8E5E3;
+    border-left: 4px solid #A64B45;
+    border-radius: 7px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+}
+
+.account-risk-notice h3 {
+    color: #893B36;
+}
+
+.account-risk-notice p {
+    color: #60433F;
+    line-height: 1.6;
+}
+
+.account-warning-history {
+    background: #FFF1D6;
+    border-left: 4px solid #C79A45;
+    border-radius: 7px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+}
+
+.account-warning-history h3 {
+    color: #8A641C;
+}
+
+.account-warning-history p {
+    color: #66552F;
+    line-height: 1.6;
+}
+
+.account-warning-history small {
+    color: #888;
+}
+
+
+.violation-history-details,
+.account-action-history-details {
+    margin: 15px 0;
+    padding: 12px;
+    border: 1px solid #dce5dc;
+    border-radius: 8px;
+    background: #f8faf7;
+}
+
+.violation-history-details summary,
+.account-action-history-details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #49634f;
+    padding: 5px;
+}
+
+.account-violation-item,
+.account-action-history {
+    padding: 15px 0;
+    border-bottom: 1px solid #e1e7e1;
+}
+
+.account-warning-item {
+    padding: 15px;
+    margin: 12px 0;
+    border: 1px solid #e3c98e;
+    border-radius: 8px;
+    background: #fffaf0;
+}
+
+.account-warning-item form {
+    margin-top: 12px;
+}
+
+.account-warning-item button {
+    cursor: pointer;
+}
+
+/* Removed content page */
+
+.removed-content-section {
+    margin-top: 30px;
+}
+
+.removed-content-section > h2 {
+    margin-bottom: 18px;
+    color: #344d3b;
+}
+
+.removed-content-card {
+    background: #ffffff;
+    border: 1px solid #e1e8e0;
+    border-radius: 12px;
+    padding: 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 3px 12px rgba(40, 60, 40, 0.05);
+}
+
+.removed-content-card .content-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: #718071;
+    font-size: 13px;
+}
+
+.removed-content-type {
+    background: #edf2eb;
+    color: #49634f;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.removed-content-card h3 {
+    color: #344d3b;
+    font-size: 19px;
+    margin: 12px 0;
+}
+
+.removed-content-card .removed-author {
+    color: #718071;
+    font-size: 13px;
+    margin-bottom: 14px;
+}
+
+.removed-content-card .removed-category {
+    display: inline-block;
+    background: #f3f5f1;
+    color: #5d705e;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.removed-content-card .removed-body {
+    background: #f8faf7;
+    border-left: 3px solid #9aaf98;
+    border-radius: 5px;
+    padding: 15px;
+    color: #4d594e;
+    line-height: 1.7;
+    margin-top: 12px;
+    overflow-wrap: anywhere;
+}
+
+.removed-content-card .removed-meta {
+    border-top: 1px solid #edf0eb;
+    padding-top: 12px;
+    margin-top: 16px;
+    color: #829082;
+    font-size: 12px;
+}

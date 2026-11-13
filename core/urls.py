@@ -47,5 +47,17 @@ path(
     views.community_guidelines,
     name='community_guidelines'
 ),
+
+path(
+    'moderation/removed-content/',
+    views.removed_content,
+    name='removed_content'
+),
+
+path(
+    'moderation/account-moderation/',
+    views.account_moderation,
+    name='account_moderation'
+),
 ]
 

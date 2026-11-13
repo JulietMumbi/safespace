@@ -1,3 +1,4 @@
+
 {% load static %}
 <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
 
@@ -14,7 +15,7 @@
         <div class="report-detail-header">
             <div>
                 <p class="detail-label">REPORT DETAILS</p>
-                <h2>Report #{{ report.id }}</h2>
+                <h2>Report #{{ report.pk }}</h2>
                 <p class="detail-date">
                     Submitted {{ report.created_at|date:"d M Y, H:i" }}
                 </p>
@@ -32,7 +33,7 @@
 
             <p>
                 <strong>Reported by:</strong>
-                {{ report.reporter.username|default:"Anonymous user" }}
+                {{ report.reporter.email|default:"User unavailable" }}
             </p>
 
             <p>
@@ -45,9 +46,7 @@
             <h3>Reported Content</h3>
 
             {% if report.post %}
-                <p>
-                    <strong>Content type:</strong> Post
-                </p>
+                <p><strong>Content type:</strong> Post</p>
 
                 <p>
                     <strong>Category:</strong>
@@ -64,9 +63,7 @@
                 </div>
 
             {% elif report.reply %}
-                <p>
-                    <strong>Content type:</strong> Reply
-                </p>
+                <p><strong>Content type:</strong> Reply</p>
 
                 <p>
                     <strong>Original post:</strong>
