@@ -13,6 +13,9 @@
 
         <nav class="moderation-navigation">
             <a href="{% url 'moderation_dashboard' %}">Overview</a>
+                         <a href="{% url 'community_insights' %}">
+    Community Insights
+</a>
             <a href="{% url 'moderation_dashboard' %}?status=pending">User Reports</a>
             <a href="{% url 'moderation_dashboard' %}?status=ai_flagged">AI-Flagged Content</a>
             <a href="{% url 'removed_content' %}" class="active">Removed Content</a>

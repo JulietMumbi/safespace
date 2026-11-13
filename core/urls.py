@@ -59,5 +59,11 @@ path(
     views.account_moderation,
     name='account_moderation'
 ),
+
+path(
+    'moderation/community-insights/',
+    views.community_insights,
+    name='community_insights'
+),
 ]
 

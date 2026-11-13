@@ -1,0 +1,401 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Community Insights | SafeSpace</title>
+
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+
+<body>
+
+<div class="moderation-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="moderation-sidebar">
+
+        <div class="sidebar-brand">
+            <h2>SafeSpace</h2>
+            <p>Moderation Panel</p>
+        </div>
+
+        <nav class="moderation-navigation">
+
+            <a href="{% url 'moderation_dashboard' %}">
+                Overview
+            </a>
+
+            <a href="{% url 'moderation_dashboard' %}?status=pending">
+                User Reports
+            </a>
+
+            <a href="{% url 'moderation_dashboard' %}?status=ai_flagged">
+                AI-Flagged Posts
+            </a>
+
+            <a href="{% url 'removed_content' %}">
+                Removed Content
+            </a>
+
+            <a href="{% url 'account_moderation' %}">
+                Account Moderation
+            </a>
+
+            <a href="{% url 'community_insights' %}" class="active">
+                Community Insights
+            </a>
+
+            <a href="{% url 'home' %}">Home</a>
+
+            <a href="{% url 'logout' %}">Logout</a>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="moderation-main">
+
+        <div class="insights-page">
+
+            <!-- PAGE HEADER -->
+            <div class="insights-header">
+
+                <div>
+                    <h1>Community Insights</h1>
+
+                    <p>
+                        Explore community participation, student discussions
+                        and moderation patterns.
+                    </p>
+                </div>
+
+                <form method="GET" class="insights-filter">
+
+                    <label for="period">Time period</label>
+
+                    <select name="period" id="period"
+                            onchange="this.form.submit()">
+
+                        <option value="7"
+                            {% if period == '7' %}selected{% endif %}>
+                            Last 7 days
+                        </option>
+
+                        <option value="30"
+                            {% if period == '30' %}selected{% endif %}>
+                            Last 30 days
+                        </option>
+
+                        <option value="90"
+                            {% if period == '90' %}selected{% endif %}>
+                            Last 90 days
+                        </option>
+
+                        <option value="all"
+                            {% if period == 'all' %}selected{% endif %}>
+                            All time
+                        </option>
+
+                    </select>
+
+                </form>
+
+            </div>
+
+
+            <!-- COMMUNITY ACTIVITY -->
+            <section class="insight-section">
+
+                <div class="section-heading">
+                    <h2>Community Activity</h2>
+
+                    <p>
+                        Posts and replies recorded during the selected period.
+                    </p>
+                </div>
+
+                <div class="insight-card">
+
+                    <div class="activity-legend">
+                        <span>
+                            <i class="legend-posts"></i>
+                            Posts
+                        </span>
+
+                        <span>
+                            <i class="legend-replies"></i>
+                            Replies
+                        </span>
+                    </div>
+
+                    {% for item in activity_rows %}
+
+                        <div class="activity-row">
+
+                            <div class="activity-date">
+                                {{ item.label }}
+                            </div>
+
+                            <div class="activity-bars">
+
+                                <div class="activity-bar-line">
+
+                                    <meter class="posts-meter"
+                                           min="0"
+                                           max="{{ activity_max }}"
+                                           value="{{ item.posts }}">
+                                    </meter>
+
+                                    <span>{{ item.posts }}</span>
+
+                                </div>
+
+                                <div class="activity-bar-line">
+
+                                    <meter class="replies-meter"
+                                           min="0"
+                                           max="{{ activity_max }}"
+                                           value="{{ item.replies }}">
+                                    </meter>
+
+                                    <span>{{ item.replies }}</span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% empty %}
+
+                        <p class="empty-insight">
+                            No community activity recorded during this period.
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+            <!-- CATEGORY INSIGHTS -->
+            <section class="insight-section">
+
+                <div class="section-heading">
+                    <h2>Discussion Categories</h2>
+
+                    <p>
+                        See which topics receive the most posts.
+                    </p>
+                </div>
+
+                <div class="insight-card">
+
+                    {% for item in category_rows %}
+
+                        <div class="distribution-row">
+
+                            <div class="distribution-info">
+                                <span>{{ item.label }}</span>
+                                <strong>{{ item.count }}</strong>
+                            </div>
+
+                            <meter class="category-meter"
+                                   min="0"
+                                   max="{{ category_max }}"
+                                   value="{{ item.count }}">
+                            </meter>
+
+                        </div>
+
+                    {% empty %}
+
+                        <p class="empty-insight">
+                            No category data available.
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+            <!-- ENGAGEMENT -->
+            <section class="insight-section">
+
+                <div class="section-heading">
+                    <h2>Post Engagement</h2>
+
+                    <p>
+                        Compare discussions that received replies with
+                        those that did not.
+                    </p>
+                </div>
+
+                <div class="insight-grid">
+
+                    <div class="insight-card engagement-card">
+
+                        <h3>Received replies</h3>
+
+                        <div class="engagement-number">
+                            {{ answered_posts }}
+                        </div>
+
+                        <p>{{ answered_percentage }}% of active posts</p>
+
+                        <meter class="engagement-meter answered-meter"
+                               min="0"
+                               max="100"
+                               value="{{ answered_percentage }}">
+                        </meter>
+
+                    </div>
+
+
+                    <div class="insight-card engagement-card">
+
+                        <h3>Not yet answered</h3>
+
+                        <div class="engagement-number">
+                            {{ unanswered_posts }}
+                        </div>
+
+                        <p>{{ unanswered_percentage }}% of active posts</p>
+
+                        <meter class="engagement-meter unanswered-meter"
+                               min="0"
+                               max="100"
+                               value="{{ unanswered_percentage }}">
+                        </meter>
+
+                    </div>
+
+                </div>
+
+                {% if engagement_total == 0 %}
+
+                    <p class="empty-insight">
+                        No active posts available for engagement analysis.
+                    </p>
+
+                {% endif %}
+
+            </section>
+
+
+            <!-- EMOTIONAL WELLBEING -->
+            <section class="insight-section">
+
+                <div class="section-heading">
+                    <h2>Emotional Wellbeing Trends</h2>
+
+                    <p>
+                        Emotional states selected by students when creating posts.
+                    </p>
+                </div>
+
+                <div class="insight-card">
+
+                    {% for item in emotional_rows %}
+
+                        <div class="distribution-row">
+
+                            <div class="distribution-info">
+                                <span>{{ item.label }}</span>
+                                <strong>{{ item.count }}</strong>
+                            </div>
+
+                            <meter class="emotion-meter"
+                                   min="0"
+                                   max="{{ emotional_max }}"
+                                   value="{{ item.count }}">
+                            </meter>
+
+                        </div>
+
+                    {% empty %}
+
+                        <p class="empty-insight">
+                            No emotional state information recorded.
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+            <!-- MODERATION INSIGHTS -->
+            <section class="insight-section">
+
+                <div class="section-heading">
+                    <h2>Moderation Overview</h2>
+
+                    <p>
+                        Review content flags, reports, removals and
+                        confirmed account violations.
+                    </p>
+                </div>
+
+                <div class="insight-card">
+
+                    {% for item in moderation_rows %}
+
+                        <div class="distribution-row">
+
+                            <div class="distribution-info">
+                                <span>{{ item.label }}</span>
+                                <strong>{{ item.count }}</strong>
+                            </div>
+
+                            <meter class="moderation-meter"
+                                   min="0"
+                                   max="{{ moderation_max }}"
+                                   value="{{ item.count }}">
+                            </meter>
+
+                        </div>
+
+                    {% empty %}
+
+                        <p class="empty-insight">
+                            No moderation records available.
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+            <!-- NOTE -->
+            <div class="insights-note">
+
+                <p>
+                    These insights are based on activity recorded in SafeSpace.
+                    Emotional states reflect students' self-reported selections
+                    and are not clinical diagnoses.
+                </p>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

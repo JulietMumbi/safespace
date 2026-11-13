@@ -21,10 +21,21 @@
                 Overview
             </a>
 
+
+                <a href="{% url 'community_insights' %}">
+    Community Insights
+</a>
+
             <a href="{% url 'moderation_dashboard' %}?status=pending"
                class="{% if selected_filter == 'pending' %}active{% endif %}">
                 User Reports
                 <span>{{ pending_count }}</span>
+            </a>
+
+            <a href="{% url 'moderation_dashboard' %}?status=dismissed"
+               class="{% if selected_filter == 'dismissed' %}active{% endif %}">
+                Dismissed Reports
+                <span>{{ dismissed_count }}</span>
             </a>
 
             <a href="{% url 'moderation_dashboard' %}?status=ai_flagged"
@@ -33,10 +44,10 @@
                 <span>{{ ai_flagged_count }}</span>
             </a>
 
-                <a href="{% url 'removed_content' %}"
-       class="{% if request.resolver_match.url_name == 'removed_content' %}active{% endif %}">
-        Removed Content
-    </a>
+            <a href="{% url 'removed_content' %}"
+               class="{% if request.resolver_match.url_name == 'removed_content' %}active{% endif %}">
+                Removed Content
+            </a>
 
             <a href="{% url 'account_moderation' %}">
                 Account Moderation
@@ -148,6 +159,92 @@
                 </a>
 
             </section>
+
+
+<!-- COMMUNITY INSIGHTS -->
+<section class="community-insights">
+
+    <div class="insights-heading">
+        <div>
+            <h2>Community Insights</h2>
+            <p>
+                Understand how students are engaging with discussions
+                across SafeSpace.
+            </p>
+        </div>
+    </div>
+
+    <!-- Unanswered post statistics -->
+    <div class="insights-stat-grid">
+
+        <div class="insights-stat-card">
+            <span>Unanswered Posts</span>
+            <strong>{{ unanswered_posts_count }}</strong>
+            <small>Active discussions without replies</small>
+        </div>
+
+        <div class="insights-stat-card">
+            <span>Unanswered Rate</span>
+            <strong>{{ unanswered_rate }}%</strong>
+            <small>Of all active posts</small>
+        </div>
+
+        <div class="insights-stat-card">
+            <span>Active Posts</span>
+            <strong>{{ total_active_posts }}</strong>
+            <small>Currently available discussions</small>
+        </div>
+
+    </div>
+
+    <!-- Unanswered posts by category -->
+    <div class="category-insights-card">
+
+        <div class="category-insights-heading">
+            <h3>Unanswered Posts by Category</h3>
+            <p>
+                Categories with the highest number of discussions
+                that have not received a response.
+            </p>
+        </div>
+
+        {% for item in category_unanswered_insights %}
+
+            <div class="category-insight-item">
+
+                <div class="category-insight-label">
+                    <span>{{ item.name }}</span>
+
+                    <strong>
+                        {{ item.unanswered_count }}
+                        <small>of {{ item.total_posts }} posts</small>
+                    </strong>
+                </div>
+
+                <div class="insight-bar-track">
+                    <div class="insight-bar-fill" style="width: {{ item.bar_width|default:0 }}%;">
+                </div>
+
+            </div>
+
+        {% empty %}
+
+            <div class="empty-insights">
+                No active discussions are available for analysis yet.
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+    <p class="insights-explanation">
+        An unanswered post is an active discussion with no active replies.
+        Removed posts and replies, as well as AI-flagged content, are excluded.
+        These statistics help identify areas where student engagement may need
+        encouragement. They do not require moderators to respond to posts.
+    </p>
+
+</section>
 
 
             <!-- MODERATION NOTICE -->
@@ -299,6 +396,83 @@
 
                 {% endfor %}
 
+            </section>
+
+        {% elif selected_filter == 'dismissed' %}
+
+            <section class="moderation-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Dismissed Reports</h2>
+                        <p>Reports that were reviewed and dismissed.</p>
+                    </div>
+
+                    <span class="section-count">
+                        {{ reports|length }}
+                    </span>
+
+                </div>
+
+                {% for report in reports %}
+
+                    <a href="{% url 'moderation_report_detail' report.pk %}"
+                       class="report-list-card">
+
+                        <div class="report-card-content">
+
+                            <div class="report-card-top">
+                                <span>Report #{{ report.pk }}</span>
+                                <span class="report-status">Dismissed</span>
+                            </div>
+
+                            <h3>
+                                {% if report.post %}
+                                    {{ report.post.title }}
+                                {% elif report.reply %}
+                                    Reported reply
+                                {% else %}
+                                    Content unavailable
+                                {% endif %}
+                            </h3>
+
+                            <p>
+                                {{ report.reason|truncatechars:120 }}
+                            </p>
+
+                            <div class="report-card-meta">
+                                <span>
+                                    {{ report.created_at|date:"d M Y, H:i" }}
+                                </span>
+                                <span>Open report →</span>
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                {% empty %}
+
+                    <div class="empty-moderation-state">
+                        <h3>No dismissed reports</h3>
+                        <p>There are currently no dismissed reports.</p>
+                    </div>
+
+                {% endfor %}
+
+            </section>
+
+        {% elif selected_filter == 'removed' %}
+
+            <section class="moderation-section">
+                <div class="empty-moderation-state">
+                    <h3>Removed Content</h3>
+                    <p>View removed posts and replies in the removed content section.</p>
+                    <a href="{% url 'removed_content' %}" class="quick-link-card">
+                        View removed content
+                    </a>
+                </div>
             </section>
 
 

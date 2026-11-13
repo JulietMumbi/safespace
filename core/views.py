@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
-from django.db.models import Count, Q, Max, Prefetch
+from django.db.models import Count, Q, Max, Min, Prefetch
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -12,7 +12,12 @@ from django.db import transaction, IntegrityError
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
+from datetime import timedelta
+from django.db.models.functions import TruncDate, TruncMonth
+from .models import AccountViolation
 from django.http import HttpResponseForbidden
+from collections import defaultdict
+from django.core.exceptions import PermissionDenied
 from .models import (
     User,
     AnonymousProfile,
@@ -869,6 +874,77 @@ def moderation_dashboard(request):
     ai_flagged_count = (
         ai_flagged_post_count + ai_flagged_reply_count
     )
+        # COMMUNITY INSIGHTS
+
+    # Count only active posts and their active replies.
+    # Removed and AI-flagged content is excluded.
+    active_posts_with_replies = Post.objects.filter(
+        status='active'
+    ).annotate(
+        active_reply_count=Count(
+            'replies',
+            filter=Q(replies__status='active'),
+            distinct=True
+        )
+    )
+
+    total_active_posts = active_posts_with_replies.count()
+
+    # Active posts with no active replies.
+    unanswered_posts = active_posts_with_replies.filter(
+        active_reply_count=0
+    )
+
+    unanswered_posts_count = unanswered_posts.count()
+
+    unanswered_rate = (
+        round((unanswered_posts_count / total_active_posts) * 100, 1)
+        if total_active_posts > 0 else 0
+    )
+
+    # Unanswered posts grouped by category.
+    category_unanswered_insights = []
+
+    for category in Category.objects.all().order_by('name'):
+
+        category_posts = active_posts_with_replies.filter(
+            category=category
+        )
+
+        category_total = category_posts.count()
+
+        if category_total == 0:
+            continue
+
+        category_unanswered_count = category_posts.filter(
+            active_reply_count=0
+        ).count()
+
+        category_unanswered_insights.append({
+            'name': category.name,
+            'total_posts': category_total,
+            'unanswered_count': category_unanswered_count,
+        })
+
+    # Sort categories from the most unanswered posts to the least.
+    category_unanswered_insights.sort(
+        key=lambda item: item['unanswered_count'],
+        reverse=True
+    )
+
+    # Calculate bar widths for the category chart.
+    highest_unanswered_count = max(
+        [item['unanswered_count'] for item in category_unanswered_insights],
+        default=0
+    )
+
+    for item in category_unanswered_insights:
+        item['bar_width'] = (
+            round(
+                item['unanswered_count'] / highest_unanswered_count * 100
+            )
+            if highest_unanswered_count > 0 else 0
+        )
 
     selected_filter = request.GET.get('status', 'overview')
 
@@ -935,6 +1011,10 @@ def moderation_dashboard(request):
         'ai_flagged_count': ai_flagged_count,
         'ai_flagged_post_count': ai_flagged_post_count,
         'ai_flagged_reply_count': ai_flagged_reply_count,
+        'total_active_posts': total_active_posts,
+        'unanswered_posts_count': unanswered_posts_count,
+        'unanswered_rate': unanswered_rate,
+        'category_unanswered_insights': category_unanswered_insights,
         'selected_filter': selected_filter,
         'at_risk_count': AccountViolation.objects.values(
             'user'
@@ -950,6 +1030,281 @@ def moderation_dashboard(request):
         'core/moderation_dashboard.html',
         context
     )
+    
+
+@login_required
+def community_insights(request):
+    if not (request.user.is_superuser or request.user.role == 'moderator'):
+        raise PermissionDenied
+
+    # Date filter
+    period = request.GET.get('period', '30')
+
+    if period not in ['7', '30', '90', 'all']:
+        period = '30'
+
+    now = timezone.now()
+    start_date = None if period == 'all' else now - timedelta(days=int(period))
+
+    # Reusable date filter
+    def apply_period(queryset):
+        if start_date:
+            return queryset.filter(created_at__gte=start_date)
+        return queryset
+
+    # --------------------------------------------------
+    # 1. COMMUNITY ACTIVITY: POSTS AND REPLIES OVER TIME
+    # --------------------------------------------------
+
+    posts = apply_period(Post.objects.filter(status='active'))
+    replies = apply_period(Reply.objects.filter(status='active'))
+
+    if period == 'all':
+        date_function = TruncMonth
+    else:
+        date_function = TruncDate
+
+    activity = defaultdict(lambda: {'posts': 0, 'replies': 0})
+
+    post_activity = (
+        posts.annotate(date_group=date_function('created_at'))
+        .values('date_group')
+        .annotate(total=Count('pk'))
+        .order_by('date_group')
+    )
+
+    reply_activity = (
+        replies.annotate(date_group=date_function('created_at'))
+        .values('date_group')
+        .annotate(total=Count('pk'))
+        .order_by('date_group')
+    )
+
+    for item in post_activity:
+        if item['date_group']:
+            activity[item['date_group']]['posts'] = item['total']
+
+    for item in reply_activity:
+        if item['date_group']:
+            activity[item['date_group']]['replies'] = item['total']
+
+    sorted_dates = sorted(activity.keys())
+
+    activity_labels = [
+        date.strftime('%b %Y') if period == 'all'
+        else date.strftime('%d %b')
+        for date in sorted_dates
+    ]
+
+    activity_posts = [activity[date]['posts'] for date in sorted_dates]
+    activity_replies = [activity[date]['replies'] for date in sorted_dates]
+
+    # --------------------------------------------------
+    # 2. CATEGORY INSIGHTS
+    # --------------------------------------------------
+
+    category_data = (
+        posts.values('category__name')
+        .annotate(total=Count('pk'))
+        .order_by('-total')
+    )
+
+    category_labels = [
+        item['category__name'] for item in category_data[:10]
+    ]
+
+    category_counts = [
+        item['total'] for item in category_data[:10]
+    ]
+
+    # --------------------------------------------------
+    # 3. POST ENGAGEMENT
+    # Include posts that have received ZERO replies
+    # --------------------------------------------------
+
+    posts_with_reply_counts = posts.annotate(
+        active_reply_count=Count(
+            'replies',
+            filter=Q(replies__status='active')
+        )
+    )
+
+    answered_posts = posts_with_reply_counts.filter(
+        active_reply_count__gt=0
+    ).count()
+
+    unanswered_posts = posts_with_reply_counts.filter(
+        active_reply_count=0
+    ).count()
+
+    # --------------------------------------------------
+    # 4. EMOTIONAL WELLBEING TRENDS
+    # --------------------------------------------------
+
+    emotional_data = (
+        posts.exclude(emotional_state__isnull=True)
+        .exclude(emotional_state='')
+        .values('emotional_state')
+        .annotate(total=Count('pk'))
+        .order_by('-total')
+    )
+
+    emotional_choices = dict(Post.EMOTIONAL_STATE_CHOICES)
+
+    emotional_labels = [
+        emotional_choices.get(item['emotional_state'],
+                              item['emotional_state'])
+        for item in emotional_data
+    ]
+
+    emotional_counts = [
+        item['total'] for item in emotional_data
+    ]
+
+    # --------------------------------------------------
+    # 5. MODERATION INSIGHTS
+    # --------------------------------------------------
+
+    flagged_posts = apply_period(
+        Post.objects.filter(status='flagged')
+    ).count()
+
+    flagged_replies = apply_period(
+        Reply.objects.filter(status='flagged')
+    ).count()
+
+    removed_posts = apply_period(
+        Post.objects.filter(status='removed')
+    ).count()
+
+    removed_replies = apply_period(
+        Reply.objects.filter(status='removed')
+    ).count()
+
+    pending_reports = Report.objects.filter(
+        status='pending'
+    ).count()
+
+    confirmed_violations = apply_period(
+        AccountViolation.objects.all()
+    ).count()
+
+    moderation_labels = [
+        'AI-flagged posts',
+        'AI-flagged replies',
+        'Removed posts',
+        'Removed replies',
+        'Pending reports',
+        'Confirmed violations',
+    ]
+
+    moderation_counts = [
+        flagged_posts,
+        flagged_replies,
+        removed_posts,
+        removed_replies,
+        pending_reports,
+        confirmed_violations,
+    ]
+
+    
+    # --------------------------------------------------
+    # PREPARE CSS VISUALIZATION DATA
+    # --------------------------------------------------
+
+    activity_rows = [
+        {
+            'label': date.strftime('%b %Y') if period == 'all'
+                     else date.strftime('%d %b'),
+            'posts': activity[date]['posts'],
+            'replies': activity[date]['replies'],
+        }
+        for date in sorted_dates
+    ]
+
+    category_rows = [
+        {
+            'label': item['category__name'],
+            'count': item['total'],
+        }
+        for item in category_data[:10]
+    ]
+
+    emotional_rows = [
+        {
+            'label': emotional_choices.get(
+                item['emotional_state'],
+                item['emotional_state']
+            ),
+            'count': item['total'],
+        }
+        for item in emotional_data
+    ]
+
+    moderation_rows = [
+        {'label': label, 'count': count}
+        for label, count in zip(moderation_labels, moderation_counts)
+    ]
+
+    # Maximum values keep the meter scales meaningful
+    category_max = max(
+        [item['count'] for item in category_rows] or [1]
+    )
+
+    emotional_max = max(
+        [item['count'] for item in emotional_rows] or [1]
+    )
+
+    moderation_max = max(
+        [item['count'] for item in moderation_rows] or [1]
+    )
+
+    activity_max = max(
+        [max(item['posts'], item['replies']) for item in activity_rows]
+        or [1]
+    )
+
+    engagement_total = answered_posts + unanswered_posts
+
+    answered_percentage = (
+        round((answered_posts / engagement_total) * 100)
+        if engagement_total else 0
+    )
+
+    unanswered_percentage = (
+        round((unanswered_posts / engagement_total) * 100)
+        if engagement_total else 0
+    )
+
+    context = {
+        'period': period,
+
+        'activity_rows': activity_rows,
+        'activity_max': activity_max,
+
+        'category_rows': category_rows,
+        'category_max': category_max,
+
+        'emotional_rows': emotional_rows,
+        'emotional_max': emotional_max,
+
+        'moderation_rows': moderation_rows,
+        'moderation_max': moderation_max,
+
+        'answered_posts': answered_posts,
+        'unanswered_posts': unanswered_posts,
+        'engagement_total': engagement_total,
+        'answered_percentage': answered_percentage,
+        'unanswered_percentage': unanswered_percentage,
+    }
+
+    return render(
+        request,
+        'core/community_insights.html',
+        context
+    )
+
+
 
 def moderation_report_detail(request, report_id):
     if not request.user.is_authenticated:
