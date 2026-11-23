@@ -10,6 +10,8 @@
     <title>Log In - Anonymous Peer Support</title>
 
     <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/theme.css' %}">
+<script src="{% static 'core/js/theme.js' %}" defer></script>
 </head>
 
 <body>
@@ -20,6 +22,7 @@
 
         <div class="nav-links">
             <a href="{% url 'home' %}">Home</a>
+            {% include 'core/partials/theme_toggle.html' %}
             <a href="{% url 'signup' %}" class="btn btn-primary">
                 Sign Up
             </a>

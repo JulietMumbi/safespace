@@ -1,7 +1,28 @@
 
 {% load static %}
 <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/theme.css' %}">
+<script src="{% static 'core/js/theme.js' %}" defer></script>
 {% block content %}
+
+<nav class="my-space-navbar">
+    <a href="{% url 'dashboard' %}" class="my-space-brand">
+        Safe<span>Space</span>
+    </a>
+
+    <div class="my-space-nav-actions">
+        <a href="{% url 'dashboard' %}" class="my-space-nav-link">
+            Dashboard
+        </a>
+
+        {% include 'core/partials/theme_toggle.html' %}
+
+        <a href="{% url 'logout' %}" class="my-space-logout">
+            Log Out
+        </a>
+    </div>
+</nav>
+
 <main class="my-space-page">
 
     <div class="my-space-header">

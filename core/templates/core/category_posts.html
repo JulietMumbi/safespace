@@ -11,6 +11,8 @@
     <title>{{ category.name }} - SafeSpace</title>
 
     <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/theme.css' %}">
+<script src="{% static 'core/js/theme.js' %}" defer></script>
 </head>
 
 <body>
@@ -20,6 +22,7 @@
 
         <div class="nav-links">
             <a href="{% url 'dashboard' %}">Dashboard</a>
+            {% include 'core/partials/theme_toggle.html' %}
             <a href="{% url 'logout' %}">Log Out</a>
         </div>
     </nav>

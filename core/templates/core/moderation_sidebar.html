@@ -14,6 +14,7 @@
     <div class="sidebar-label">WORKSPACE</div>
 
     <nav class="moderation-nav">
+        
 
         <a href="{% url 'moderation_dashboard' %}"
            class="moderation-nav-link {% if request.resolver_match.url_name == 'moderation_dashboard' and not request.GET.status %}active{% endif %}"
@@ -66,9 +67,9 @@
 
     </nav>
 
-    <div class="sidebar-bottom">
+   <div class="sidebar-bottom">
 
-        <div class="sidebar-role">
+    <div class="sidebar-role">
             <span class="role-indicator"></span>
             <div class="sidebar-role-copy">
                 <strong>Moderator</strong>

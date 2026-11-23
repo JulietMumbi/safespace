@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community Guidelines - SafeSpace</title>
     <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/theme.css' %}">
+<script src="{% static 'core/js/theme.js' %}" defer></script>
 </head>
 
 <body>
@@ -16,6 +18,7 @@
         <div class="nav-links">
             <a href="{% url 'home' %}">Home</a>
             <a href="{% url 'signup' %}">Sign Up</a>
+            {% include 'core/partials/theme_toggle.html' %}
         </div>
     </nav>
 

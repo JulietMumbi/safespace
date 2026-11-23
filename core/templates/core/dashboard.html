@@ -7,16 +7,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - SafeSpace</title>
     <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/theme.css' %}">
+<script src="{% static 'core/js/theme.js' %}" defer></script>
 </head>
 
 <body>
 
     <nav class="navbar">
         <div class="logo">SafeSpace</div>
-        <div class="nav-links">
-            <a href="{% url 'home' %}">Home</a>
-            <a href="{% url 'logout' %}">Log Out</a>
-        </div>
+       <div class="nav-links">
+    <a href="{% url 'home' %}">Home</a>
+
+    {% include 'core/partials/theme_toggle.html' %}
+
+    <a href="{% url 'logout' %}">Log Out</a>
+</div>
     </nav>
 
     <main class="dashboard-container">

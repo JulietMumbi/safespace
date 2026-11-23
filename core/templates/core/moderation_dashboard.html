@@ -1,6 +1,8 @@
 
 {% load static %}
 <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/theme.css' %}">
+<script src="{% static 'core/js/theme.js' %}" defer></script>
 
 {% block content %}
 
@@ -9,7 +11,7 @@
     <!-- SIDEBAR -->
     {% include 'core/moderation_sidebar.html' %}
 
-  
+    
 
 
     <!-- MAIN CONTENT -->
@@ -31,6 +33,7 @@
 
                 {% endif %}
             </div>
+            
 
         </header>
 
