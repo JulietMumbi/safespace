@@ -389,3 +389,63 @@ html[data-theme="dark"] .topbar-right .theme-toggle {
     color: #e5ebe5;
     border-color: #506657;
 }
+
+/* Dark mode - signup and form input readability */
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+    background-color: #26352d;
+    color: #f1f5f1;
+    border: 1px solid #52665a;
+}
+
+/* Placeholder text */
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+    color: #aebbb1;
+    opacity: 1;
+}
+
+/* Text entered into form fields */
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea {
+    -webkit-text-fill-color: #f1f5f1;
+}
+
+/* Dropdown options */
+html[data-theme="dark"] select option {
+    background-color: #26352d;
+    color: #f1f5f1;
+}
+
+/* Focused fields */
+html[data-theme="dark"] input:focus,
+html[data-theme="dark"] textarea:focus,
+html[data-theme="dark"] select:focus {
+    border-color: #91b49b;
+    outline: none;
+}
+
+/* Signup page helper text - dark mode */
+html[data-theme="dark"] .form-container .form-group small {
+ color: #000000;    opacity: 1;
+}
+
+/* Password requirements text - dark mode */
+html[data-theme="dark"] .form-container .password-requirements,
+html[data-theme="dark"] .form-container .password-requirements p,
+html[data-theme="dark"] .form-container .password-requirements li {
+ color: #000000;    opacity: 1;
+}
+
+/* Dark mode - browser autofill text */
+html[data-theme="dark"] input:-webkit-autofill,
+html[data-theme="dark"] input:-webkit-autofill:hover,
+html[data-theme="dark"] input:-webkit-autofill:focus,
+html[data-theme="dark"] textarea:-webkit-autofill,
+html[data-theme="dark"] select:-webkit-autofill {
+    -webkit-text-fill-color: #000000 !important;
+    caret-color: #000000;
+    box-shadow: 0 0 0 1000px #ffffff inset !important;
+    transition: background-color 9999s ease-in-out 0s;
+}
